@@ -1,0 +1,111 @@
+const Retell = require('retell-sdk');
+const Agent = require('../models/Agent');
+const LLMConfiguration = require('../models/LLMConfiguration');
+
+// Initialize Retell client
+const retellClient = new Retell({
+  apiKey: process.env.RETELL_API_KEY,
+});
+
+// Create a new agent with Retell
+const createRetellAgent = async (voiceId, llmConfig) => {
+  try {
+    // Create LLM first
+    const llmResponse = await retellClient.llm.create({
+      model: llmConfig.model,
+      s2s_model: llmConfig.s2sModel,
+      model_temperature: llmConfig.temperature,
+      model_high_priority: llmConfig.highPriority,
+      general_prompt: llmConfig.generalPrompt,
+      tool_call_strict_mode: true
+    });
+
+    // Create agent with the LLM
+    const agentResponse = await retellClient.agent.create({
+      response_engine: {
+        llm_id: llmResponse.llm_id,
+        type: "retell-llm"
+      },
+      voice_id: voiceId
+    });
+
+    return {
+      retellAgentId: agentResponse.agent_id,
+      retellLlmId: llmResponse.llm_id
+    };
+  } catch (error) {
+    console.error('Error creating Retell agent:', error);
+    throw error;
+  }
+};
+
+// Create a phone call with Retell
+const createPhoneCall = async (fromNumber, toNumber, agentId) => {
+  try {
+    const callResponse = await retellClient.call.createPhoneCall({
+      from_number: fromNumber,
+      to_number: toNumber,
+      agent_id: agentId
+    });
+
+    return {
+      retellCallId: callResponse.call_id,
+      status: 'initiated'
+    };
+  } catch (error) {
+    console.error('Error creating phone call:', error);
+    throw error;
+  }
+};
+
+// Get agent details from Retell
+const getRetellAgent = async (agentId) => {
+  try {
+    const agentResponse = await retellClient.agent.get(agentId);
+    return agentResponse;
+  } catch (error) {
+    console.error('Error getting Retell agent:', error);
+    throw error;
+  }
+};
+
+// Update agent in Retell
+const updateRetellAgent = async (agentId, voiceId, llmId) => {
+  try {
+    const updateData = {
+      voice_id: voiceId
+    };
+    
+    if (llmId) {
+      updateData.response_engine = {
+        llm_id: llmId,
+        type: "retell-llm"
+      };
+    }
+    
+    const agentResponse = await retellClient.agent.update(agentId, updateData);
+    return agentResponse;
+  } catch (error) {
+    console.error('Error updating Retell agent:', error);
+    throw error;
+  }
+};
+
+// Delete agent from Retell
+const deleteRetellAgent = async (agentId) => {
+  try {
+    await retellClient.agent.delete(agentId);
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting Retell agent:', error);
+    throw error;
+  }
+};
+
+module.exports = {
+  createRetellAgent,
+  createPhoneCall,
+  getRetellAgent,
+  updateRetellAgent,
+  deleteRetellAgent
+};
