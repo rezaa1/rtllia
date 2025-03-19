@@ -20,11 +20,8 @@
       "express-validator": "^6.12.0"
     },
     "devDependencies": {
-      "nodemon": "^2.0.7",
-      "@babel/core": "^7.16.0",
-      "@babel/preset-env": "^7.16.0",
-      "@babel/preset-react": "^7.16.0",
-      "react-scripts": "4.0.3"
+      "nodemon": "^2.0.7"
+
     },
     "engines": {
       "node": ">=14.0.0"
