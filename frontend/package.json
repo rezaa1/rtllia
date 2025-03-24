@@ -36,8 +36,8 @@
   },
   "devDependencies": {
     "eslint": "^8.0.0",
-    "eslint-config-react-app": "^7.0.1", // Ensure this is compatible
-    "eslint-plugin-react": "^7.32.0", // Update to a compatible version
+    "eslint-config-react-app": "^7.0.1",
+    "eslint-plugin-react": "^7.32.0",
     "eslint-plugin-react-hooks": "^4.6.0"
   }
 }
