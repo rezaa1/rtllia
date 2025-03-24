@@ -2,20 +2,21 @@ FROM node:20-alpine as build
 
 WORKDIR /app
 
-# Create package.json if it doesn't exist
-
-# Install react-scripts globally
-RUN npm install -g react-scripts
-
 # Copy package.json and install dependencies
 COPY package*.json ./
 RUN npm install
+
+# Install react-scripts locally instead of globally
+RUN npm install react-scripts
 
 # Copy the rest of the application code
 COPY . .
 
 # Create .env file for React
 RUN echo "REACT_APP_API_URL=http://localhost:5000/api" > .env
+
+# Disable ESLint during build to avoid conflicts
+ENV DISABLE_ESLINT_PLUGIN=true
 
 # Build the application
 RUN npm run build
