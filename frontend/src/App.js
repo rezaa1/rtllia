@@ -19,7 +19,7 @@ import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Auth Context
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider, useAuth } from './utils/AuthContext';
 
 function App() {
   return (
