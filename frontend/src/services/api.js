@@ -30,7 +30,7 @@ export const setTenantHeader = (domain) => {
 // Auth service
 export const authService = {
   login: async (email, password) => {
-    const response = await API.post('/login', { email, password });
+    const response = await API.post('/users/login', { email, password });
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
     }
@@ -38,7 +38,7 @@ export const authService = {
   },
   
   register: async (userData) => {
-    const response = await API.post('/register', userData);
+    const response = await API.post('/users , userData);
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
     }
