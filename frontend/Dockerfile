@@ -7,13 +7,12 @@ COPY package*.json ./
 RUN npm install
 
 # Install react-scripts locally instead of globally
-RUN npm install react-scripts
+RUN npm install react-scripts --save-dev
 
 # Copy the rest of the application code
 COPY . .
 
-# Create .env file for React with dynamic API URL
-# This will be replaced with the actual server URL at runtime
+# Create .env file for React with empty API URL to use relative URLs
 RUN echo "REACT_APP_API_URL=" > .env
 
 # Build the application
@@ -27,6 +26,9 @@ COPY --from=build /app/build /usr/share/nginx/html
 
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copy static test page for troubleshooting
+COPY public/test.html /usr/share/nginx/html/test.html
 
 # Expose port 80
 EXPOSE 80
