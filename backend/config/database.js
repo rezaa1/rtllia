@@ -12,7 +12,8 @@ if (process.env.DATABASE_URL) {
     dialect: 'postgres',
     logging: process.env.NODE_ENV === 'development' ? console.log : false,
     dialectOptions: {
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      // Disable SSL for local development
+      ssl: false
     },
     pool: {
       max: 5,
@@ -33,7 +34,8 @@ if (process.env.DATABASE_URL) {
       dialect: 'postgres',
       logging: process.env.NODE_ENV === 'development' ? console.log : false,
       dialectOptions: {
-        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+        // Disable SSL for local development
+        ssl: false
       },
       pool: {
         max: 5,
