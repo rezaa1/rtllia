@@ -3,7 +3,6 @@ FROM node:20-alpine as build
 WORKDIR /app
 
 # Create package.json if it doesn't exist
-RUN echo '{\n  "name": "retell-frontend",\n  "version": "1.0.0",\n  "private": true,\n  "dependencies": {\n    "react": "^18.2.0",\n    "react-dom": "^18.2.0",\n    "react-router-dom": "^6.10.0",\n    "axios": "^1.3.5",\n    "bootstrap": "^5.2.3",\n    "react-bootstrap": "^2.7.4"\n  },\n  "scripts": {\n    "start": "react-scripts start",\n    "build": "react-scripts build",\n    "test": "react-scripts test",\n    "eject": "react-scripts eject"\n  },\n  "eslintConfig": {\n    "extends": [\n      "react-app",\n      "react-app/jest"\n    ]\n  },\n  "browserslist": {\n    "production": [\n      ">0.2%",\n      "not dead",\n      "not op_mini all"\n    ],\n    "development": [\n      "last 1 chrome version",\n      "last 1 firefox version",\n      "last 1 safari version"\n    ]\n  }\n}' > package.json
 
 # Install react-scripts globally
 RUN npm install -g react-scripts
