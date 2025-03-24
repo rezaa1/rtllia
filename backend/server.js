@@ -1,7 +1,7 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const sequelize = require('./config/database');
 const userRoutes = require('./routes/userRoutes');
 const agentRoutes = require('./routes/agentRoutes');
 const callRoutes = require('./routes/callRoutes');
@@ -26,18 +26,23 @@ app.get('/', (req, res) => {
   res.send('Retell AI Integration API is running...');
 });
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log('MongoDB Connected');
+// Start server with Sequelize connection
+const startServer = async () => {
+  try {
+    // Test database connection
+    await sequelize.authenticate();
+    console.log('PostgreSQL database connection has been established successfully.');
     
     // Start server
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
-  })
-  .catch(err => {
-    console.error(`Error connecting to MongoDB: ${err.message}`);
+  } catch (error) {
+    console.error(`Database connection error: ${error.message}`);
     process.exit(1);
-  });
+  }
+};
+
+// Start the server
+startServer();
