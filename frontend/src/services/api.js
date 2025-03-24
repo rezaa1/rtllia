@@ -1,26 +1,9 @@
 import axios from 'axios';
 
-// Get the current hostname
-const currentHostname = window.location.hostname;
-const currentPort = window.location.port ? `:${window.location.port}` : '';
-const protocol = window.location.protocol;
-
-// Determine the API base URL
-let apiBaseUrl;
-if (process.env.REACT_APP_API_URL) {
-  // Use environment variable if available
-  apiBaseUrl = process.env.REACT_APP_API_URL;
-} else if (currentHostname === 'localhost' || currentHostname === '127.0.0.1') {
-  // Use localhost for local development
-  apiBaseUrl = 'http://localhost:5000/api';
-} else {
-  // For external access, use the same hostname but with backend port
-  apiBaseUrl = `${protocol}//${currentHostname}:5000/api`;
-}
-
 // Create axios instance with base URL
+// Using relative URL for API requests to be proxied through nginx
 const API = axios.create({
-  baseURL: apiBaseUrl
+  baseURL: '/api'
 });
 
 // Add auth token to requests
