@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -21,20 +21,18 @@ const SimplePage = () => (
 
 function App() {
   return (
-    <Router>
-      <main className="py-3">
-        <Container>
-          <Routes>
-            {/* Use a simple component for the home route */}
-            <Route path="/" element={<SimplePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            {/* Fallback route */}
-            <Route path="*" element={<SimplePage />} />
-          </Routes>
-        </Container>
-      </main>
-    </Router>
+    <main className="py-3">
+      <Container>
+        <Routes>
+          {/* Use a simple component for the home route */}
+          <Route path="/" element={<SimplePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          {/* Fallback route */}
+          <Route path="*" element={<SimplePage />} />
+        </Routes>
+      </Container>
+    </main>
   );
 }
 
