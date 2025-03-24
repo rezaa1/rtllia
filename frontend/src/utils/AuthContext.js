@@ -13,12 +13,35 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // On mount, check if user is already logged in
   useEffect(() => {
-    const user = authService.getCurrentUser();
-    setCurrentUser(user);
-    setLoading(false);
+    const fetchCurrentUser = async () => {
+      try {
+        // Check if token exists in localStorage
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setLoading(false);
+          return;
+        }
+        
+        // Get current user data
+        const userData = await authService.getCurrentUser();
+        setCurrentUser(userData);
+      } catch (error) {
+        console.error('Error fetching current user:', error);
+        // Clear token if it's invalid
+        if (error.response && error.response.status === 401) {
+          localStorage.removeItem('token');
+        }
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCurrentUser();
   }, []);
 
   // Login function
@@ -66,7 +89,8 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
-    updateProfile
+    updateProfile,
+    error
   };
 
   return (
