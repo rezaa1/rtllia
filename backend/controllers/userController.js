@@ -38,12 +38,12 @@ const registerUser = async (req, res) => {
 
     if (user) {
       res.status(201).json({
-        _id: user._id,
+        id: user.id,
         username: user.username,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        token: generateToken(user._id),
+        token: generateToken(user.id),
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
@@ -62,17 +62,17 @@ const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     // Find user by email
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ where: { email } });
 
     // Check if user exists and password matches
     if (user && (await user.comparePassword(password))) {
       res.json({
-        _id: user._id,
+        id: user.id,
         username: user.username,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        token: generateToken(user._id),
+        token: generateToken(user.id),
       });
     } else {
       res.status(401).json({ message: 'Invalid email or password' });
@@ -88,11 +88,11 @@ const loginUser = async (req, res) => {
 // @access  Private
 const getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findByPk(req.user.id);
 
     if (user) {
       res.json({
-        _id: user._id,
+        id: user.id,
         username: user.username,
         email: user.email,
         firstName: user.firstName,
@@ -112,7 +112,7 @@ const getUserProfile = async (req, res) => {
 // @access  Private
 const updateUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findByPk(req.user.id);
 
     if (user) {
       user.username = req.body.username || user.username;
@@ -121,18 +121,18 @@ const updateUserProfile = async (req, res) => {
       user.lastName = req.body.lastName || user.lastName;
 
       if (req.body.password) {
-        user.password = req.body.password;
+        user.passwordHash = req.body.password;
       }
 
       const updatedUser = await user.save();
 
       res.json({
-        _id: updatedUser._id,
+        id: updatedUser.id,
         username: updatedUser.username,
         email: updatedUser.email,
         firstName: updatedUser.firstName,
         lastName: updatedUser.lastName,
-        token: generateToken(updatedUser._id),
+        token: generateToken(updatedUser.id),
       });
     } else {
       res.status(404).json({ message: 'User not found' });
