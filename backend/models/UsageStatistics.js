@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
-const Organization = require('./Organization');
+const Organization = require('../Organization');
 
 const UsageStatistics = sequelize.define('UsageStatistics', {
   id: {

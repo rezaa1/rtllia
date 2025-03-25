@@ -1,5 +1,5 @@
 const Organization = require('../models/Organization');
-const sequelize = require('./config/database');
+const sequelize = require('../config/database');
 
 async function createDefaultOrganization() {
   try {
