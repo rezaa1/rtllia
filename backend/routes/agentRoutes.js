@@ -9,6 +9,17 @@ const {
   deleteAgent
 } = require('../controllers/agentController');
 
+// Debug middleware for agent routes
+router.use((req, res, next) => {
+  console.log('Agent Route:', {
+    method: req.method,
+    path: req.path,
+    headers: req.headers,
+    body: req.body
+  });
+  next();
+});
+
 // All routes are protected
 router.route('/')
   .post(protect, createAgent)

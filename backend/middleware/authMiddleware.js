@@ -4,6 +4,8 @@ const Organization = require('../models/Organization');
 
 // Protect routes - verify token and set user in req
 exports.protect = async (req, res, next) => {
+  console.log('Auth Middleware - Headers:', req.headers);
+  
   let token;
 
   // Check for token in Authorization header
@@ -11,21 +13,27 @@ exports.protect = async (req, res, next) => {
     try {
       // Get token from header
       token = req.headers.authorization.split(' ')[1];
+      console.log('Token found:', token);
 
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log('Decoded token:', decoded);
 
       // Get user from token
       const user = await User.findByPk(decoded.id, {
         attributes: { exclude: ['passwordHash'] }
       });
 
+      console.log('User found:', user);
+
       if (!user) {
+        console.log('User not found in database');
         return res.status(401).json({ message: 'Not authorized, user not found' });
       }
 
       // Check if user is active
       if (!user.isActive) {
+        console.log('User account is inactive');
         return res.status(401).json({ message: 'User account is inactive' });
       }
 
@@ -33,14 +41,14 @@ exports.protect = async (req, res, next) => {
       req.user = user;
       req.organizationId = user.organizationId;
       
+      console.log('Auth successful, proceeding to next middleware');
       next();
     } catch (error) {
       console.error('Auth middleware error:', error);
-      res.status(401).json({ message: 'Not authorized, token failed' });
+      res.status(401).json({ message: 'Not authorized, token failed', error: error.message });
     }
-  }
-
-  if (!token) {
+  } else {
+    console.log('No token found in request');
     res.status(401).json({ message: 'Not authorized, no token' });
   }
 };
