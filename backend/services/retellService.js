@@ -6,7 +6,7 @@ class RetellService {
       throw new Error('RETELL_API_KEY is not set in environment variables');
     }
     
-    const baseURL = process.env.RETELL_API_BASE_URL || 'https://api.retell.cc/v1';
+    const baseURL = process.env.RETELL_API_BASE_URL || 'https://api.retellai.com/v2';
     console.log('Initializing Retell API Service with base URL:', baseURL);
     
     this.api = axios.create({
