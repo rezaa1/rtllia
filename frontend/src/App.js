@@ -3,9 +3,10 @@ import { Routes, Route } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-// Import only essential pages for testing
+// Import pages
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import DashboardPage from './pages/DashboardPage';
 import { AuthProvider } from './utils/AuthContext';
 
 // Simple components for testing
@@ -30,6 +31,7 @@ function App() {
             <Route path="/" element={<SimplePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
             {/* Fallback route */}
             <Route path="*" element={<SimplePage />} />
           </Routes>
