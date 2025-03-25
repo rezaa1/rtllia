@@ -1,7 +1,6 @@
 import axios from 'axios';
 
 // Create axios instance with base URL
-// Using relative URL for API requests to be proxied through nginx
 const API = axios.create({
   baseURL: '/api'
 });
@@ -33,20 +32,26 @@ export const authService = {
     const response = await API.post('/users/login', { email, password });
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
+      // Set the token in the default headers immediately after login
+      API.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
     }
     return response.data;
   },
   
   register: async (userData) => {
-    const response = await API.post('/users' , userData);
+    const response = await API.post('/users', userData);
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
+      // Set the token in the default headers immediately after registration
+      API.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
     }
     return response.data;
   },
   
   logout: () => {
     localStorage.removeItem('token');
+    // Remove the token from default headers on logout
+    delete API.defaults.headers.common['Authorization'];
   },
   
   getCurrentUser: async () => {
@@ -56,6 +61,52 @@ export const authService = {
   
   updateProfile: async (userData) => {
     const response = await API.put('/users/profile', userData);
+    return response.data;
+  }
+};
+
+// Agent service
+export const agentService = {
+  getAgents: async () => {
+    const response = await API.get('/agents');
+    return response.data;
+  },
+  
+  getAgentById: async (id) => {
+    const response = await API.get(`/agents/${id}`);
+    return response.data;
+  },
+  
+  createAgent: async (agentData) => {
+    const response = await API.post('/agents', agentData);
+    return response.data;
+  },
+  
+  updateAgent: async (id, agentData) => {
+    const response = await API.put(`/agents/${id}`, agentData);
+    return response.data;
+  },
+  
+  deleteAgent: async (id) => {
+    const response = await API.delete(`/agents/${id}`);
+    return response.data;
+  }
+};
+
+// Call service
+export const callService = {
+  getCalls: async () => {
+    const response = await API.get('/calls');
+    return response.data;
+  },
+  
+  getCallById: async (id) => {
+    const response = await API.get(`/calls/${id}`);
+    return response.data;
+  },
+  
+  createCall: async (callData) => {
+    const response = await API.post('/calls', callData);
     return response.data;
   }
 };
@@ -139,98 +190,6 @@ export const whiteLabelService = {
   
   getWhiteLabelSettingsByDomain: async (domain) => {
     const response = await API.get(`/white-label/domain/${domain}`);
-    return response.data;
-  }
-};
-
-// Agent service
-export const agentService = {
-  getAgents: async () => {
-    const response = await API.get('/agents');
-    return response.data;
-  },
-  
-  getAgentById: async (id) => {
-    const response = await API.get(`/agents/${id}`);
-    return response.data;
-  },
-  
-  createAgent: async (agentData) => {
-    const response = await API.post('/agents', agentData);
-    return response.data;
-  },
-  
-  updateAgent: async (id, agentData) => {
-    const response = await API.put(`/agents/${id}`, agentData);
-    return response.data;
-  },
-  
-  deleteAgent: async (id) => {
-    const response = await API.delete(`/agents/${id}`);
-    return response.data;
-  }
-};
-
-// Call service
-export const callService = {
-  getCalls: async () => {
-    const response = await API.get('/calls');
-    return response.data;
-  },
-  
-  getCallById: async (id) => {
-    const response = await API.get(`/calls/${id}`);
-    return response.data;
-  },
-  
-  createCall: async (callData) => {
-    const response = await API.post('/calls', callData);
-    return response.data;
-  }
-};
-
-// Subscription service
-export const subscriptionService = {
-  getSubscriptionPlans: async () => {
-    const response = await API.get('/subscriptions/plans');
-    return response.data;
-  },
-  
-  getCurrentSubscription: async (organizationId) => {
-    const response = await API.get(`/subscriptions/organizations/${organizationId}`);
-    return response.data;
-  },
-  
-  subscribeToplan: async (organizationId, planData) => {
-    const response = await API.post(`/subscriptions/organizations/${organizationId}`, planData);
-    return response.data;
-  },
-  
-  cancelSubscription: async (organizationId) => {
-    const response = await API.delete(`/subscriptions/organizations/${organizationId}`);
-    return response.data;
-  },
-  
-  getPaymentMethods: async (organizationId) => {
-    const response = await API.get(`/subscriptions/organizations/${organizationId}/payment-methods`);
-    return response.data;
-  },
-  
-  addPaymentMethod: async (organizationId, paymentMethodData) => {
-    const response = await API.post(`/subscriptions/organizations/${organizationId}/payment-methods`, paymentMethodData);
-    return response.data;
-  }
-};
-
-// Usage statistics service
-export const usageService = {
-  getUsageStatistics: async (organizationId, year, month) => {
-    const response = await API.get(`/usage/${organizationId}?year=${year}&month=${month}`);
-    return response.data;
-  },
-  
-  getUsageHistory: async (organizationId) => {
-    const response = await API.get(`/usage/${organizationId}/history`);
     return response.data;
   }
 };
