@@ -1,4 +1,4 @@
-const Organization = require('./models/Organization');
+const Organization = require('../models/Organization');
 const sequelize = require('./config/database');
 
 async function createDefaultOrganization() {
