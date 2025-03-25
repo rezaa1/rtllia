@@ -29,18 +29,22 @@ class RetellService {
           ...llmConfig,
           model: llmConfig.model,
           temperature: llmConfig.temperature,
-          high_priority: llmConfig.highPriority
+          high_priority: llmConfig.highPriority,
+          type: 'retell-llm'
         }
       });
       
       const response = await this.api.post('/create-agent', {
+        response_engine: {
+          llm_id: llmConfig.llmId, // Assuming llmId is part of llmConfig
+          type: 'retell-llm'
+        },
         voice_id: voiceId,
         llm_config: {
           model: llmConfig.model,
           temperature: llmConfig.temperature || 0,
           high_priority: llmConfig.highPriority || false,
           system_prompt: llmConfig.generalPrompt || '',
-          // Add s2s_model only if provided
           ...(llmConfig.s2sModel && { s2s_model: llmConfig.s2sModel })
         }
       });
