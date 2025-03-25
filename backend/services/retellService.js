@@ -21,7 +21,7 @@ class RetellService {
 
   async createRetellAgent(voiceId, llmConfig) {
     try {
-      const url = `${this.api.defaults.baseURL}/agents`;
+      const url = `${this.api.defaults.baseURL}/create-agent`;
       console.log('Making Retell API request to:', url);
       console.log('Creating Retell agent with config:', {
         voiceId,
@@ -33,7 +33,7 @@ class RetellService {
         }
       });
       
-      const response = await this.api.post('/agents', {
+      const response = await this.api.post('/create-agent', {
         voice_id: voiceId,
         llm_config: {
           model: llmConfig.model,
@@ -57,7 +57,7 @@ class RetellService {
       };
     } catch (error) {
       console.error('Retell API Error Details:', {
-        url: `${this.api.defaults.baseURL}/agents`,
+        url: `${this.api.defaults.baseURL}/agent-create`,
         status: error.response?.status,
         statusText: error.response?.statusText,
         data: error.response?.data,
