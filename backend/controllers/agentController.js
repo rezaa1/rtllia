@@ -14,7 +14,8 @@ const createAgent = async (req, res) => {
 
     // Create agent in our database
     const agent = await Agent.create({
-      user: req.user._id,
+      organizationId: req.user.organizationId, // Add organizationId from authenticated user
+      userId: req.user.id, // Add userId from authenticated user
       name,
       description,
       retellAgentId: retellResponse.retellAgentId,
@@ -23,7 +24,7 @@ const createAgent = async (req, res) => {
 
     // Create LLM configuration in our database
     const llmConfiguration = await LLMConfiguration.create({
-      agent: agent._id,
+      agentId: agent.id,
       retellLlmId: retellResponse.retellLlmId,
       model: llmConfig.model,
       s2sModel: llmConfig.s2sModel,
@@ -33,13 +34,13 @@ const createAgent = async (req, res) => {
     });
 
     res.status(201).json({
-      _id: agent._id,
+      _id: agent.id,
       name: agent.name,
       description: agent.description,
       retellAgentId: agent.retellAgentId,
       voiceId: agent.voiceId,
       llmConfiguration: {
-        _id: llmConfiguration._id,
+        _id: llmConfiguration.id,
         model: llmConfiguration.model,
         s2sModel: llmConfiguration.s2sModel,
         temperature: llmConfiguration.temperature,
@@ -58,7 +59,16 @@ const createAgent = async (req, res) => {
 // @access  Private
 const getAgents = async (req, res) => {
   try {
-    const agents = await Agent.find({ user: req.user._id }).populate('user', 'username email');
+    const agents = await Agent.findAll({
+      where: { 
+        organizationId: req.user.organizationId,
+        userId: req.user.id
+      },
+      include: [{
+        model: LLMConfiguration,
+        attributes: ['model', 's2sModel', 'temperature', 'highPriority', 'generalPrompt']
+      }]
+    });
     res.json(agents);
   } catch (error) {
     console.error(error);
@@ -71,29 +81,27 @@ const getAgents = async (req, res) => {
 // @access  Private
 const getAgentById = async (req, res) => {
   try {
-    const agent = await Agent.findById(req.params.id).populate('user', 'username email');
+    const agent = await Agent.findOne({
+      where: {
+        id: req.params.id,
+        organizationId: req.user.organizationId
+      },
+      include: [{
+        model: LLMConfiguration,
+        attributes: ['model', 's2sModel', 'temperature', 'highPriority', 'generalPrompt']
+      }]
+    });
     
     if (!agent) {
       return res.status(404).json({ message: 'Agent not found' });
     }
 
     // Check if agent belongs to user
-    if (agent.user._id.toString() !== req.user._id.toString()) {
+    if (agent.userId !== req.user.id) {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
-    // Get LLM configuration
-    const llmConfiguration = await LLMConfiguration.findOne({ agent: agent._id });
-
-    res.json({
-      _id: agent._id,
-      name: agent.name,
-      description: agent.description,
-      retellAgentId: agent.retellAgentId,
-      voiceId: agent.voiceId,
-      user: agent.user,
-      llmConfiguration: llmConfiguration
-    });
+    res.json(agent);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -105,15 +113,16 @@ const getAgentById = async (req, res) => {
 // @access  Private
 const updateAgent = async (req, res) => {
   try {
-    const agent = await Agent.findById(req.params.id);
+    const agent = await Agent.findOne({
+      where: {
+        id: req.params.id,
+        organizationId: req.user.organizationId,
+        userId: req.user.id
+      }
+    });
     
     if (!agent) {
       return res.status(404).json({ message: 'Agent not found' });
-    }
-
-    // Check if agent belongs to user
-    if (agent.user.toString() !== req.user._id.toString()) {
-      return res.status(401).json({ message: 'Not authorized' });
     }
 
     const { name, description, voiceId, llmConfig } = req.body;
@@ -124,17 +133,19 @@ const updateAgent = async (req, res) => {
       
       // If LLM config is provided, update or create new LLM in Retell
       if (llmConfig) {
-        const llmConfiguration = await LLMConfiguration.findOne({ agent: agent._id });
+        const llmConfiguration = await LLMConfiguration.findOne({
+          where: { agentId: agent.id }
+        });
         
         if (llmConfiguration) {
           // Update LLM configuration in our database
-          llmConfiguration.model = llmConfig.model || llmConfiguration.model;
-          llmConfiguration.s2sModel = llmConfig.s2sModel || llmConfiguration.s2sModel;
-          llmConfiguration.temperature = llmConfig.temperature !== undefined ? llmConfig.temperature : llmConfiguration.temperature;
-          llmConfiguration.highPriority = llmConfig.highPriority !== undefined ? llmConfig.highPriority : llmConfiguration.highPriority;
-          llmConfiguration.generalPrompt = llmConfig.generalPrompt || llmConfiguration.generalPrompt;
-          
-          await llmConfiguration.save();
+          await llmConfiguration.update({
+            model: llmConfig.model || llmConfiguration.model,
+            s2sModel: llmConfig.s2sModel || llmConfiguration.s2sModel,
+            temperature: llmConfig.temperature !== undefined ? llmConfig.temperature : llmConfiguration.temperature,
+            highPriority: llmConfig.highPriority !== undefined ? llmConfig.highPriority : llmConfiguration.highPriority,
+            generalPrompt: llmConfig.generalPrompt || llmConfiguration.generalPrompt
+          });
           llmId = llmConfiguration.retellLlmId;
         }
       }
@@ -162,22 +173,23 @@ const updateAgent = async (req, res) => {
 // @access  Private
 const deleteAgent = async (req, res) => {
   try {
-    const agent = await Agent.findById(req.params.id);
+    const agent = await Agent.findOne({
+      where: {
+        id: req.params.id,
+        organizationId: req.user.organizationId,
+        userId: req.user.id
+      }
+    });
     
     if (!agent) {
       return res.status(404).json({ message: 'Agent not found' });
-    }
-
-    // Check if agent belongs to user
-    if (agent.user.toString() !== req.user._id.toString()) {
-      return res.status(401).json({ message: 'Not authorized' });
     }
 
     // Delete agent from Retell
     await retellService.deleteRetellAgent(agent.retellAgentId);
 
     // Delete agent from our database
-    await agent.remove();
+    await agent.destroy();
 
     res.json({ message: 'Agent removed' });
   } catch (error) {
