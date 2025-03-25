@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const createDefaultOrganization = require('./createDefaultOrg');
 
 // Generate JWT
 const generateToken = (id) => {
@@ -16,11 +17,14 @@ const registerUser = async (req, res) => {
     const { username, email, password, firstName, lastName } = req.body;
 
     // Check if user already exists
-    const userExists = await User.findOne({ $or: [{ email }, { username }] });
+    const userExists = await User.findOne({ where: { email } });
 
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
+
+    // Get or create default organization
+    const defaultOrg = await createDefaultOrganization();
 
     // Create user
     const user = await User.create({
@@ -29,7 +33,7 @@ const registerUser = async (req, res) => {
       passwordHash: password, // Changed from password to passwordHash
       firstName,
       lastName,
-      organizationId: 1, // Added default organizationId
+      organizationId: defaultOrg.id, // Use the default organization's ID
     });
 
     if (user) {
