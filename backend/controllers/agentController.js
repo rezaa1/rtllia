@@ -9,38 +9,59 @@ const createAgent = async (req, res) => {
   try {
     const { name, description, voiceId, llmConfig } = req.body;
 
-    // Create agent in Retell
-    const retellResponse = await retellService.createRetellAgent(voiceId, llmConfig);
+    if (!name || !voiceId || !llmConfig) {
+      return res.status(400).json({ 
+        message: 'Please provide name, voiceId, and LLM configuration' 
+      });
+    }
 
-    // Create agent in our database
+    let retellResponse;
+    try {
+      // Create agent in Retell first
+      retellResponse = await retellService.createRetellAgent(voiceId, llmConfig);
+      
+      if (!retellResponse || !retellResponse.retellAgentId || !retellResponse.retellLlmId) {
+        throw new Error('Invalid response from Retell API');
+      }
+    } catch (retellError) {
+      console.error('Retell API Error:', retellError);
+      return res.status(500).json({ 
+        message: 'Failed to create agent in Retell',
+        error: retellError.message 
+      });
+    }
+
+    // Start database transaction
     const agent = await Agent.create({
-      organizationId: req.user.organizationId, // Add organizationId from authenticated user
-      userId: req.user.id, // Add userId from authenticated user
+      organizationId: req.user.organizationId,
+      userId: req.user.id,
       name,
       description,
       retellAgentId: retellResponse.retellAgentId,
-      voiceId
+      voiceId,
+      isActive: true
     });
 
-    // Create LLM configuration in our database
+    // Create LLM configuration
     const llmConfiguration = await LLMConfiguration.create({
       agentId: agent.id,
       retellLlmId: retellResponse.retellLlmId,
       model: llmConfig.model,
-      s2sModel: llmConfig.s2sModel,
-      temperature: llmConfig.temperature,
-      highPriority: llmConfig.highPriority,
-      generalPrompt: llmConfig.generalPrompt
+      s2sModel: llmConfig.s2sModel || null,
+      temperature: llmConfig.temperature || 0,
+      highPriority: llmConfig.highPriority || false,
+      generalPrompt: llmConfig.generalPrompt || ''
     });
 
+    // Return success response
     res.status(201).json({
-      _id: agent.id,
+      id: agent.id,
       name: agent.name,
       description: agent.description,
       retellAgentId: agent.retellAgentId,
       voiceId: agent.voiceId,
       llmConfiguration: {
-        _id: llmConfiguration.id,
+        id: llmConfiguration.id,
         model: llmConfiguration.model,
         s2sModel: llmConfiguration.s2sModel,
         temperature: llmConfiguration.temperature,
@@ -49,8 +70,11 @@ const createAgent = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Database Error:', error);
+    res.status(500).json({ 
+      message: 'Failed to create agent in database',
+      error: error.message 
+    });
   }
 };
 
