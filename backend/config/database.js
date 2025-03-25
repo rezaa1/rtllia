@@ -52,7 +52,6 @@ if (process.env.DATABASE_URL) {
         idle: 10000
       }
     }
-    }
   );
 }
 
