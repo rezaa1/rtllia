@@ -6,8 +6,11 @@ class RetellService {
       throw new Error('RETELL_API_KEY is not set in environment variables');
     }
     
+    const baseURL = process.env.RETELL_API_BASE_URL || 'https://api.retell.cc/v1';
+    console.log('Initializing Retell API Service with base URL:', baseURL);
+    
     this.api = axios.create({
-      baseURL: process.env.RETELL_API_BASE_URL || 'https://api.retell.cc/v1',
+      baseURL,
       headers: {
         'Authorization': `Bearer ${process.env.RETELL_API_KEY}`,
         'Content-Type': 'application/json'
@@ -18,6 +21,8 @@ class RetellService {
 
   async createRetellAgent(voiceId, llmConfig) {
     try {
+      const url = `${this.api.defaults.baseURL}/agents`;
+      console.log('Making Retell API request to:', url);
       console.log('Creating Retell agent with config:', {
         voiceId,
         llmConfig: {
@@ -52,6 +57,7 @@ class RetellService {
       };
     } catch (error) {
       console.error('Retell API Error Details:', {
+        url: `${this.api.defaults.baseURL}/agents`,
         status: error.response?.status,
         statusText: error.response?.statusText,
         data: error.response?.data,
@@ -82,6 +88,8 @@ class RetellService {
 
   async updateRetellAgent(agentId, voiceId, llmId) {
     try {
+      const url = `${this.api.defaults.baseURL}/agents/${agentId}`;
+      console.log('Making Retell API request to:', url);
       console.log('Updating Retell agent:', { agentId, voiceId, llmId });
       
       const response = await this.api.put(`/agents/${agentId}`, {
@@ -93,6 +101,7 @@ class RetellService {
       return response.data;
     } catch (error) {
       console.error('Error updating Retell agent:', {
+        url: `${this.api.defaults.baseURL}/agents/${agentId}`,
         status: error.response?.status,
         data: error.response?.data,
         message: error.message
@@ -110,6 +119,8 @@ class RetellService {
 
   async deleteRetellAgent(agentId) {
     try {
+      const url = `${this.api.defaults.baseURL}/agents/${agentId}`;
+      console.log('Making Retell API request to:', url);
       console.log('Deleting Retell agent:', agentId);
       
       const response = await this.api.delete(`/agents/${agentId}`);
@@ -117,6 +128,7 @@ class RetellService {
       return response.data;
     } catch (error) {
       console.error('Error deleting Retell agent:', {
+        url: `${this.api.defaults.baseURL}/agents/${agentId}`,
         status: error.response?.status,
         data: error.response?.data,
         message: error.message
@@ -134,6 +146,8 @@ class RetellService {
 
   async createPhoneCall(fromNumber, toNumber, agentId) {
     try {
+      const url = `${this.api.defaults.baseURL}/calls`;
+      console.log('Making Retell API request to:', url);
       console.log('Creating phone call:', { fromNumber, toNumber, agentId });
       
       const response = await this.api.post('/calls', {
@@ -154,6 +168,7 @@ class RetellService {
       };
     } catch (error) {
       console.error('Error creating phone call:', {
+        url: `${this.api.defaults.baseURL}/calls`,
         status: error.response?.status,
         data: error.response?.data,
         message: error.message
@@ -171,6 +186,8 @@ class RetellService {
 
   async getCallStatus(callId) {
     try {
+      const url = `${this.api.defaults.baseURL}/calls/${callId}`;
+      console.log('Making Retell API request to:', url);
       console.log('Getting call status for:', callId);
       
       const response = await this.api.get(`/calls/${callId}`);
@@ -183,6 +200,7 @@ class RetellService {
       return response.data;
     } catch (error) {
       console.error('Error getting call status:', {
+        url: `${this.api.defaults.baseURL}/calls/${callId}`,
         status: error.response?.status,
         data: error.response?.data,
         message: error.message
