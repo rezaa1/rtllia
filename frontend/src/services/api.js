@@ -2,7 +2,10 @@ import axios from 'axios';
 
 // Create axios instance with base URL
 const API = axios.create({
-  baseURL: '/api'
+  baseURL: '/api',
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
 
 // Add auth token to requests
@@ -12,9 +15,36 @@ API.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    console.log('Request Config:', {
+      url: config.url,
+      method: config.method,
+      headers: config.headers
+    });
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error('Request Interceptor Error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for better error handling
+API.interceptors.response.use(
+  (response) => {
+    console.log('Response:', {
+      status: response.status,
+      data: response.data
+    });
+    return response;
+  },
+  (error) => {
+    console.error('Response Error:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+    return Promise.reject(error);
+  }
 );
 
 // Handle tenant-specific requests
@@ -32,7 +62,6 @@ export const authService = {
     const response = await API.post('/users/login', { email, password });
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
-      // Set the token in the default headers immediately after login
       API.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
     }
     return response.data;
@@ -42,7 +71,6 @@ export const authService = {
     const response = await API.post('/users', userData);
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
-      // Set the token in the default headers immediately after registration
       API.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
     }
     return response.data;
@@ -50,7 +78,6 @@ export const authService = {
   
   logout: () => {
     localStorage.removeItem('token');
-    // Remove the token from default headers on logout
     delete API.defaults.headers.common['Authorization'];
   },
   
@@ -78,7 +105,16 @@ export const agentService = {
   },
   
   createAgent: async (agentData) => {
-    const response = await API.post('/agents', agentData);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    
+    const response = await API.post('/agents', agentData, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     return response.data;
   },
   
