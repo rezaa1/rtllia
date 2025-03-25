@@ -26,9 +26,10 @@ const registerUser = async (req, res) => {
     const user = await User.create({
       username,
       email,
-      password,
+      passwordHash: password, // Changed from password to passwordHash
       firstName,
       lastName,
+      organizationId: 1, // Added default organizationId
     });
 
     if (user) {
