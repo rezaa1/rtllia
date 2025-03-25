@@ -3,42 +3,86 @@ import { Routes, Route } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+// Import components
+import Navigation from './components/Navigation';
+import ProtectedRoute from './components/ProtectedRoute';
+
 // Import pages
+import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
-import { AuthProvider } from './utils/AuthContext';
+import ProfilePage from './pages/ProfilePage';
+import AgentCreatePage from './pages/AgentCreatePage';
+import AgentDetailPage from './pages/AgentDetailPage';
+import CallsPage from './pages/CallsPage';
+import WhiteLabelSettingsPage from './pages/WhiteLabelSettingsPage';
 
-// Simple components for testing
-const SimplePage = () => (
-  <div className="text-center py-5">
-    <h1>Simple Test Page</h1>
-    <p>If you can see this, basic rendering is working correctly.</p>
-    <div className="mt-4">
-      <a href="/login" className="btn btn-primary mx-2">Go to Login</a>
-      <a href="/register" className="btn btn-secondary mx-2">Go to Register</a>
-    </div>
-  </div>
-);
+// Import context
+import { AuthProvider } from './utils/AuthContext';
 
 function App() {
   return (
     <AuthProvider>
-      <main className="py-3">
-        <Container>
-          <Routes>
-            {/* Use a simple component for the home route */}
-            <Route path="/" element={<SimplePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            {/* Fallback route */}
-            <Route path="*" element={<SimplePage />} />
-          </Routes>
-        </Container>
-      </main>
+      <Navigation />
+      <Container>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+
+          {/* Protected routes */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          } />
+
+          {/* Agent routes */}
+          <Route path="/agents" element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/agents/create" element={
+            <ProtectedRoute>
+              <AgentCreatePage />
+            </ProtectedRoute>
+          } />
+          <Route path="/agents/:id" element={
+            <ProtectedRoute>
+              <AgentDetailPage />
+            </ProtectedRoute>
+          } />
+
+          {/* Call routes */}
+          <Route path="/calls" element={
+            <ProtectedRoute>
+              <CallsPage />
+            </ProtectedRoute>
+          } />
+
+          {/* Organization routes */}
+          <Route path="/organization/white-label" element={
+            <ProtectedRoute>
+              <WhiteLabelSettingsPage />
+            </ProtectedRoute>
+          } />
+
+          {/* User routes */}
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          } />
+
+          {/* Fallback route */}
+          <Route path="*" element={<HomePage />} />
+        </Routes>
+      </Container>
     </AuthProvider>
   );
 }
 
-export default App;
+export default App
