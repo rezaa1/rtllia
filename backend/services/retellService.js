@@ -7,11 +7,12 @@ class RetellService {
     }
     
     this.api = axios.create({
-      baseURL: 'https://api.retell.cc/v1',
+      baseURL: process.env.RETELL_API_BASE_URL || 'https://api.retell.cc/v1',
       headers: {
         'Authorization': `Bearer ${process.env.RETELL_API_KEY}`,
         'Content-Type': 'application/json'
-      }
+      },
+      timeout: 10000 // 10 second timeout
     });
   }
 
@@ -72,7 +73,7 @@ class RetellService {
       } else if (error.response?.status === 429) {
         throw new Error('Rate limit exceeded. Please try again later.');
       } else if (!error.response) {
-        throw new Error('Network error: Unable to reach Retell API');
+        throw new Error('Network error: Unable to reach Retell API. Please check your API key and network connection.');
       } else {
         throw new Error(`Retell API error: ${error.response.data.message || error.message}`);
       }
