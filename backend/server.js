@@ -36,13 +36,20 @@ const models = require('./models/index');
 const userRoutes = require('./routes/userRoutes');
 const agentRoutes = require('./routes/agentRoutes');
 const callRoutes = require('./routes/callRoutes');
-const resourceRoutes = require('./routes/resourceRoutes');
 
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/agents', agentRoutes);
 app.use('/api/calls', callRoutes);
-app.use('/api/resources', resourceRoutes);
+
+// Import and use resource routes separately to avoid potential ordering issues
+try {
+  const resourceRoutes = require('./routes/resourceRoutes');
+  app.use('/api/resources', resourceRoutes);
+  console.log('Resource routes registered successfully');
+} catch (error) {
+  console.error('Error registering resource routes:', error);
+}
 
 // Root route
 app.get('/', (req, res) => {
