@@ -10,13 +10,13 @@ const createCall = async (req, res) => {
     const { agentId, fromNumber, toNumber } = req.body;
 
     // Check if agent exists and belongs to user
-    const agent = await Agent.findById(agentId);
+    const agent = await Agent.findByPk(agentId);
     
     if (!agent) {
       return res.status(404).json({ message: 'Agent not found' });
     }
 
-    if (agent.user.toString() !== req.user._id.toString()) {
+    if (agent.userId !== req.user.id) {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
@@ -29,7 +29,7 @@ const createCall = async (req, res) => {
 
     // Create call in our database
     const call = await Call.create({
-      agent: agent._id,
+      agentId: agent.id,
       retellCallId: retellResponse.retellCallId,
       fromNumber,
       toNumber,
@@ -51,13 +51,23 @@ const createCall = async (req, res) => {
 const getCalls = async (req, res) => {
   try {
     // Find all agents belonging to the user
-    const agents = await Agent.find({ user: req.user._id });
-    const agentIds = agents.map(agent => agent._id);
+    const agents = await Agent.findAll({
+      where: { 
+        organizationId: req.user.organizationId,
+        userId: req.user.id
+      }
+    });
+    const agentIds = agents.map(agent => agent.id);
     
     // Find all calls for these agents
-    const calls = await Call.find({ agent: { $in: agentIds } })
-      .populate('agent', 'name retellAgentId')
-      .sort({ createdAt: -1 });
+    const calls = await Call.findAll({
+      where: { agentId: agentIds },
+      include: [{
+        model: Agent,
+        attributes: ['name', 'retellAgentId']
+      }],
+      order: [['createdAt', 'DESC']]
+    });
     
     res.json(calls);
   } catch (error) {
@@ -71,15 +81,19 @@ const getCalls = async (req, res) => {
 // @access  Private
 const getCallById = async (req, res) => {
   try {
-    const call = await Call.findById(req.params.id)
-      .populate('agent', 'name retellAgentId user');
+    const call = await Call.findByPk(req.params.id, {
+      include: [{
+        model: Agent,
+        attributes: ['name', 'retellAgentId', 'userId']
+      }]
+    });
     
     if (!call) {
       return res.status(404).json({ message: 'Call not found' });
     }
 
     // Check if call belongs to user's agent
-    if (call.agent.user.toString() !== req.user._id.toString()) {
+    if (call.Agent.userId !== req.user.id) {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
@@ -95,31 +109,25 @@ const getCallById = async (req, res) => {
 // @access  Private
 const updateCallStatus = async (req, res) => {
   try {
-    const call = await Call.findById(req.params.id);
+    const call = await Call.findByPk(req.params.id);
     
     if (!call) {
       return res.status(404).json({ message: 'Call not found' });
     }
 
     // Get agent to check ownership
-    const agent = await Agent.findById(call.agent);
+    const agent = await Agent.findByPk(call.agentId);
     
-    if (!agent || agent.user.toString() !== req.user._id.toString()) {
+    if (!agent || agent.userId !== req.user.id) {
       return res.status(401).json({ message: 'Not authorized' });
     }
 
     const { status, duration, endedAt } = req.body;
 
     // Update call in our database
-    call.status = status || call.status;
-    
-    if (duration) {
-      call.duration = duration;
-    }
-    
-    if (endedAt) {
-      call.endedAt = endedAt;
-    }
+    if (status) call.status = status;
+    if (duration) call.duration = duration;
+    if (endedAt) call.endedAt = endedAt;
     
     const updatedCall = await call.save();
 
