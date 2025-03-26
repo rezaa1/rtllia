@@ -1,11 +1,15 @@
 const Agent = require('../models/Agent');
 const LLMConfiguration = require('../models/LLMConfiguration');
 const retellService = require('../services/retellService');
+const sequelize = require('../config/database');
 
 // @desc    Create a new agent
 // @route   POST /api/agents
 // @access  Private
 const createAgent = async (req, res) => {
+  // Use a transaction to ensure both agent and LLM configuration are created together
+  const transaction = await sequelize.transaction();
+  
   try {
     const { name, description, voiceId, llmConfig } = req.body;
 
@@ -15,6 +19,15 @@ const createAgent = async (req, res) => {
       });
     }
 
+    console.log('Creating agent with data:', {
+      name,
+      description,
+      voiceId,
+      llmConfig,
+      userId: req.user.id,
+      organizationId: req.user.organizationId
+    });
+
     let retellResponse;
     try {
       // Create agent in Retell first
@@ -23,8 +36,11 @@ const createAgent = async (req, res) => {
       if (!retellResponse || !retellResponse.retellAgentId || !retellResponse.retellLlmId) {
         throw new Error('Invalid response from Retell API');
       }
+      
+      console.log('Successfully created agent in RetellAI:', retellResponse);
     } catch (retellError) {
       console.error('Retell API Error:', retellError);
+      await transaction.rollback();
       return res.status(500).json({ 
         message: 'Failed to create agent in Retell',
         error: retellError.message 
@@ -32,6 +48,11 @@ const createAgent = async (req, res) => {
     }
 
     // Start database transaction
+    console.log('Creating agent in database with RetellAI IDs:', {
+      retellAgentId: retellResponse.retellAgentId,
+      retellLlmId: retellResponse.retellLlmId
+    });
+    
     const agent = await Agent.create({
       organizationId: req.user.organizationId,
       userId: req.user.id,
@@ -40,7 +61,9 @@ const createAgent = async (req, res) => {
       retellAgentId: retellResponse.retellAgentId,
       voiceId,
       isActive: true
-    });
+    }, { transaction });
+    
+    console.log('Successfully created agent in database:', agent.toJSON());
 
     // Create LLM configuration
     const llmConfiguration = await LLMConfiguration.create({
@@ -51,7 +74,13 @@ const createAgent = async (req, res) => {
       temperature: llmConfig.temperature || 0,
       highPriority: llmConfig.highPriority || false,
       generalPrompt: llmConfig.generalPrompt || ''
-    });
+    }, { transaction });
+    
+    console.log('Successfully created LLM configuration in database:', llmConfiguration.toJSON());
+
+    // Commit the transaction
+    await transaction.commit();
+    console.log('Transaction committed successfully');
 
     // Return success response
     res.status(201).json({
@@ -71,6 +100,8 @@ const createAgent = async (req, res) => {
     });
   } catch (error) {
     console.error('Database Error:', error);
+    await transaction.rollback();
+    console.log('Transaction rolled back due to error');
     res.status(500).json({ 
       message: 'Failed to create agent in database',
       error: error.message 
@@ -83,6 +114,11 @@ const createAgent = async (req, res) => {
 // @access  Private
 const getAgents = async (req, res) => {
   try {
+    console.log('Getting agents for user:', {
+      userId: req.user.id,
+      organizationId: req.user.organizationId
+    });
+    
     // Get all agents without including LLMConfiguration
     const agents = await Agent.findAll({
       where: { 
@@ -91,13 +127,29 @@ const getAgents = async (req, res) => {
       }
     });
     
+    console.log(`Found ${agents.length} agents in database`);
+    
+    if (agents.length === 0) {
+      console.log('No agents found for this user');
+      return res.json([]);
+    }
+    
+    // Log each agent for debugging
+    agents.forEach((agent, index) => {
+      console.log(`Agent ${index + 1}:`, agent.toJSON());
+    });
+    
     // Get LLM configurations separately
     const agentIds = agents.map(agent => agent.id);
+    console.log('Getting LLM configurations for agent IDs:', agentIds);
+    
     const llmConfigurations = await LLMConfiguration.findAll({
       where: {
         agentId: agentIds
       }
     });
+    
+    console.log(`Found ${llmConfigurations.length} LLM configurations`);
     
     // Map LLM configurations to agents
     const agentsWithLLM = agents.map(agent => {
@@ -111,13 +163,16 @@ const getAgents = async (req, res) => {
           highPriority: llmConfig.highPriority,
           generalPrompt: llmConfig.generalPrompt
         };
+      } else {
+        console.log(`No LLM configuration found for agent ID ${agent.id}`);
       }
       return agentData;
     });
     
+    console.log('Returning agents with LLM configurations');
     res.json(agentsWithLLM);
   } catch (error) {
-    console.error(error);
+    console.error('Error getting agents:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
