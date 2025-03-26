@@ -6,7 +6,7 @@ class RetellService {
       throw new Error('RETELL_API_KEY is not set in environment variables');
     }
     
-    const baseURL = process.env.RETELL_API_BASE_URL || 'https://api.retellai.com/v2';
+    const baseURL = process.env.RETELL_API_BASE_URL || 'https://api.retellai.com';
     console.log('Initializing Retell API Service with base URL:', baseURL);
     
     this.api = axios.create({
@@ -23,42 +23,41 @@ class RetellService {
     try {
       const url = `${this.api.defaults.baseURL}/create-agent`;
       console.log('Making Retell API request to:', url);
-      console.log('Creating Retell agent with config:', {
-        voiceId,
-        llmConfig: {
-          ...llmConfig,
-          model: llmConfig.model,
-          temperature: llmConfig.temperature,
-          high_priority: llmConfig.highPriority,
-          type: 'retell-llm'
-        }
+      
+      // First, create a Retell LLM
+      const llmResponse = await this.api.post('/create-retell-llm', {
+        model: llmConfig.model,
+        temperature: llmConfig.temperature || 0,
+        system_prompt: llmConfig.generalPrompt || '',
+        ...(llmConfig.s2sModel && { s2s_model: llmConfig.s2sModel }),
+        high_priority: llmConfig.highPriority || false
       });
       
-      // Updated to match the RetellAI API documentation
-      const response = await this.api.post('/create-agent', {
+      if (!llmResponse.data || !llmResponse.data.llm_id) {
+        throw new Error('Invalid response structure from Retell API when creating LLM');
+      }
+      
+      const llmId = llmResponse.data.llm_id;
+      console.log('Created Retell LLM with ID:', llmId);
+      
+      // Now create the agent with the LLM ID
+      const agentResponse = await this.api.post('/create-agent', {
         response_engine: {
-          type: 'retell-llm',
-          llm_id: llmConfig.llmId
+          type: "retell-llm",
+          llm_id: llmId
         },
-        voice_id: voiceId,
-        llm_config: {
-          model: llmConfig.model,
-          temperature: llmConfig.temperature || 0,
-          high_priority: llmConfig.highPriority || false,
-          system_prompt: llmConfig.generalPrompt || '',
-          ...(llmConfig.s2sModel && { s2s_model: llmConfig.s2sModel })
-        }
+        voice_id: voiceId
       });
 
-      console.log('Retell API Response:', response.data);
+      console.log('Retell API Response:', agentResponse.data);
 
-      if (!response.data || !response.data.agent_id) {
+      if (!agentResponse.data || !agentResponse.data.agent_id) {
         throw new Error('Invalid response structure from Retell API');
       }
 
       return {
-        retellAgentId: response.data.agent_id,
-        retellLlmId: response.data.response_engine?.llm_id
+        retellAgentId: agentResponse.data.agent_id,
+        retellLlmId: llmId
       };
     } catch (error) {
       console.error('Retell API Error Details:', {
@@ -80,13 +79,13 @@ class RetellService {
       if (error.response?.status === 401) {
         throw new Error('Invalid Retell API key');
       } else if (error.response?.status === 400) {
-        throw new Error(`Invalid request: ${error.response.data.message || 'Bad request'}`);
+        throw new Error(`Invalid request: ${error.response.data.error_message || 'Bad request'}`);
       } else if (error.response?.status === 429) {
         throw new Error('Rate limit exceeded. Please try again later.');
       } else if (!error.response) {
         throw new Error('Network error: Unable to reach Retell API. Please check your API key and network connection.');
       } else {
-        throw new Error(`Retell API error: ${error.response.data.message || error.message}`);
+        throw new Error(`Retell API error: ${error.response.data.error_message || error.message}`);
       }
     }
   }
@@ -98,15 +97,18 @@ class RetellService {
       console.log('Updating Retell agent:', { agentId, voiceId, llmId });
       
       // Updated to match the RetellAI API documentation
-      const response = await this.api.patch(`/update-agent/${agentId}`, {
-        voice_id: voiceId,
-        ...(llmId && { 
-          response_engine: {
-            type: 'retell-llm',
-            llm_id: llmId
-          }
-        })
-      });
+      const updateData = {
+        voice_id: voiceId
+      };
+      
+      if (llmId) {
+        updateData.response_engine = {
+          type: "retell-llm",
+          llm_id: llmId
+        };
+      }
+      
+      const response = await this.api.patch(`/update-agent/${agentId}`, updateData);
 
       console.log('Retell update response:', response.data);
       return response.data;
@@ -123,7 +125,7 @@ class RetellService {
       } else if (error.response?.status === 404) {
         throw new Error('Agent not found in Retell');
       } else {
-        throw new Error(`Failed to update Retell agent: ${error.response?.data?.message || error.message}`);
+        throw new Error(`Failed to update Retell agent: ${error.response?.data?.error_message || error.message}`);
       }
     }
   }
@@ -151,7 +153,7 @@ class RetellService {
       } else if (error.response?.status === 404) {
         throw new Error('Agent not found in Retell');
       } else {
-        throw new Error(`Failed to delete Retell agent: ${error.response?.data?.message || error.message}`);
+        throw new Error(`Failed to delete Retell agent: ${error.response?.data?.error_message || error.message}`);
       }
     }
   }
@@ -190,9 +192,9 @@ class RetellService {
       if (error.response?.status === 401) {
         throw new Error('Invalid Retell API key');
       } else if (error.response?.status === 400) {
-        throw new Error(`Invalid request: ${error.response.data.message || 'Bad request'}`);
+        throw new Error(`Invalid request: ${error.response.data.error_message || 'Bad request'}`);
       } else {
-        throw new Error(`Failed to create phone call: ${error.response?.data?.message || error.message}`);
+        throw new Error(`Failed to create phone call: ${error.response?.data?.error_message || error.message}`);
       }
     }
   }
@@ -225,7 +227,7 @@ class RetellService {
       } else if (error.response?.status === 404) {
         throw new Error('Call not found');
       } else {
-        throw new Error(`Failed to get call status: ${error.response?.data?.message || error.message}`);
+        throw new Error(`Failed to get call status: ${error.response?.data?.error_message || error.message}`);
       }
     }
   }
