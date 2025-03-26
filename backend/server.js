@@ -36,11 +36,13 @@ const models = require('./models/index');
 const userRoutes = require('./routes/userRoutes');
 const agentRoutes = require('./routes/agentRoutes');
 const callRoutes = require('./routes/callRoutes');
+const resourceRoutes = require('./routes/resourceRoutes');
 
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/agents', agentRoutes);
 app.use('/api/calls', callRoutes);
+app.use('/api/resources', resourceRoutes);
 
 // Root route
 app.get('/', (req, res) => {

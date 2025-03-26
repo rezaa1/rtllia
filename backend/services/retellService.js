@@ -19,10 +19,87 @@ class RetellService {
     });
   }
 
+  async listVoices() {
+    try {
+      console.log('Fetching available voices from RetellAI');
+      const response = await this.api.get('/list-voices');
+      console.log(`Retrieved ${response.data.length} voices from RetellAI`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching voices from RetellAI:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+      throw new Error(`Failed to fetch voices: ${error.response?.data?.message || error.message}`);
+    }
+  }
+
+  async listLLMs() {
+    try {
+      console.log('Fetching available LLMs from RetellAI');
+      const response = await this.api.get('/list-retell-llms');
+      console.log(`Retrieved ${response.data.length} LLMs from RetellAI`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching LLMs from RetellAI:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+      throw new Error(`Failed to fetch LLMs: ${error.response?.data?.message || error.message}`);
+    }
+  }
+
+  async checkVoiceModelCompatibility(voiceId, s2sModel) {
+    try {
+      // First, get all available voices
+      const voices = await this.listVoices();
+      const voice = voices.find(v => v.voice_id === voiceId);
+      
+      if (!voice) {
+        throw new Error(`Voice ${voiceId} not found. Please choose from available voices.`);
+      }
+      
+      // For now, we'll implement a simple compatibility check based on the error message
+      // In a production environment, you would want to get this information from RetellAI's API
+      // or maintain a compatibility matrix
+      
+      // Known incompatibilities based on error messages
+      const incompatiblePairs = [
+        { voiceId: '11labs-Adrian', s2sModel: 'gpt-4o-realtime' }
+      ];
+      
+      const isIncompatible = incompatiblePairs.some(pair => 
+        pair.voiceId === voiceId && pair.s2sModel === s2sModel
+      );
+      
+      if (isIncompatible) {
+        throw new Error(`Voice ${voiceId} is not compatible with s2s model ${s2sModel}`);
+      }
+      
+      return { compatible: true, voice };
+    } catch (error) {
+      console.error('Voice-model compatibility check failed:', error.message);
+      throw error;
+    }
+  }
+
   async createRetellAgent(voiceId, llmConfig) {
     try {
       const url = `${this.api.defaults.baseURL}/create-agent`;
       console.log('Making Retell API request to:', url);
+      
+      // Check voice and model compatibility if s2sModel is provided
+      if (llmConfig.s2sModel) {
+        try {
+          await this.checkVoiceModelCompatibility(voiceId, llmConfig.s2sModel);
+          console.log(`Voice ${voiceId} is compatible with s2s model ${llmConfig.s2sModel}`);
+        } catch (compatError) {
+          console.error('Compatibility check failed:', compatError.message);
+          throw compatError;
+        }
+      }
       
       // First, create a Retell LLM
       // Handle the constraint: Cannot set both model and s2s_model
