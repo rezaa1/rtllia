@@ -2,6 +2,8 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const sequelize = require('./config/database');
+// Import models and initialize associations
+require('./models/index');
 const userRoutes = require('./routes/userRoutes');
 const agentRoutes = require('./routes/agentRoutes');
 const callRoutes = require('./routes/callRoutes');
