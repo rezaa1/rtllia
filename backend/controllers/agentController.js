@@ -83,17 +83,39 @@ const createAgent = async (req, res) => {
 // @access  Private
 const getAgents = async (req, res) => {
   try {
+    // Get all agents without including LLMConfiguration
     const agents = await Agent.findAll({
       where: { 
         organizationId: req.user.organizationId,
         userId: req.user.id
-      },
-      include: [{
-        model: LLMConfiguration,
-        attributes: ['model', 's2sModel', 'temperature', 'highPriority', 'generalPrompt']
-      }]
+      }
     });
-    res.json(agents);
+    
+    // Get LLM configurations separately
+    const agentIds = agents.map(agent => agent.id);
+    const llmConfigurations = await LLMConfiguration.findAll({
+      where: {
+        agentId: agentIds
+      }
+    });
+    
+    // Map LLM configurations to agents
+    const agentsWithLLM = agents.map(agent => {
+      const agentData = agent.toJSON();
+      const llmConfig = llmConfigurations.find(config => config.agentId === agent.id);
+      if (llmConfig) {
+        agentData.LLMConfiguration = {
+          model: llmConfig.model,
+          s2sModel: llmConfig.s2sModel,
+          temperature: llmConfig.temperature,
+          highPriority: llmConfig.highPriority,
+          generalPrompt: llmConfig.generalPrompt
+        };
+      }
+      return agentData;
+    });
+    
+    res.json(agentsWithLLM);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -109,11 +131,7 @@ const getAgentById = async (req, res) => {
       where: {
         id: req.params.id,
         organizationId: req.user.organizationId
-      },
-      include: [{
-        model: LLMConfiguration,
-        attributes: ['model', 's2sModel', 'temperature', 'highPriority', 'generalPrompt']
-      }]
+      }
     });
     
     if (!agent) {
@@ -124,8 +142,24 @@ const getAgentById = async (req, res) => {
     if (agent.userId !== req.user.id) {
       return res.status(401).json({ message: 'Not authorized' });
     }
+    
+    // Get LLM configuration separately
+    const llmConfiguration = await LLMConfiguration.findOne({
+      where: { agentId: agent.id }
+    });
+    
+    const agentData = agent.toJSON();
+    if (llmConfiguration) {
+      agentData.LLMConfiguration = {
+        model: llmConfiguration.model,
+        s2sModel: llmConfiguration.s2sModel,
+        temperature: llmConfiguration.temperature,
+        highPriority: llmConfiguration.highPriority,
+        generalPrompt: llmConfiguration.generalPrompt
+      };
+    }
 
-    res.json(agent);
+    res.json(agentData);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
