@@ -2,11 +2,6 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const sequelize = require('./config/database');
-// Import models and initialize associations
-require('./models/index');
-const userRoutes = require('./routes/userRoutes');
-const agentRoutes = require('./routes/agentRoutes');
-const callRoutes = require('./routes/callRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -33,6 +28,14 @@ app.use((req, res, next) => {
   });
   next();
 });
+
+// Import models and initialize associations
+const models = require('./models/index');
+
+// Import routes
+const userRoutes = require('./routes/userRoutes');
+const agentRoutes = require('./routes/agentRoutes');
+const callRoutes = require('./routes/callRoutes');
 
 // Routes
 app.use('/api/users', userRoutes);

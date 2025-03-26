@@ -29,3 +29,5 @@ router.route('/:id')
   .get(protect, getAgentById)
   .put(protect, updateAgent)
   .delete(protect, deleteAgent);
+
+module.exports = router;
