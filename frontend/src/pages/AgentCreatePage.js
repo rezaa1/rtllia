@@ -27,6 +27,7 @@ const AgentCreatePage = () => {
   const [resourcesLoading, setResourcesLoading] = useState(true);
   const [error, setError] = useState('');
   const [compatibilityError, setCompatibilityError] = useState('');
+  const [modelType, setModelType] = useState('standard'); // 'standard' or 'realtime'
   const navigate = useNavigate();
 
   // Fetch available resources when component mounts
@@ -58,7 +59,7 @@ const AgentCreatePage = () => {
             llmConfig: {
               ...prev.llmConfig,
               model: models.length > 0 ? models[0] : '',
-              s2sModel: s2sModels.length > 0 ? s2sModels[0] : ''
+              s2sModel: ''  // Start with empty s2s_model
             }
           }));
         }
@@ -78,7 +79,7 @@ const AgentCreatePage = () => {
   useEffect(() => {
     const checkCompatibility = async () => {
       // Only check if both voice and s2s model are selected
-      if (formData.voiceId && formData.llmConfig.s2sModel) {
+      if (formData.voiceId && formData.llmConfig.s2sModel && modelType === 'realtime') {
         try {
           const result = await resourceService.checkCompatibility(
             formData.voiceId, 
@@ -93,11 +94,13 @@ const AgentCreatePage = () => {
         } catch (error) {
           setCompatibilityError(error.response?.data?.message || 'Compatibility check failed');
         }
+      } else {
+        setCompatibilityError('');
       }
     };
     
     checkCompatibility();
-  }, [formData.voiceId, formData.llmConfig.s2sModel]);
+  }, [formData.voiceId, formData.llmConfig.s2sModel, modelType]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -119,6 +122,29 @@ const AgentCreatePage = () => {
         [name]: val
       }
     });
+  };
+
+  const handleModelTypeChange = (type) => {
+    setModelType(type);
+    
+    // Clear the other model type when switching
+    if (type === 'standard') {
+      setFormData({
+        ...formData,
+        llmConfig: {
+          ...formData.llmConfig,
+          s2sModel: ''
+        }
+      });
+    } else {
+      setFormData({
+        ...formData,
+        llmConfig: {
+          ...formData.llmConfig,
+          model: ''
+        }
+      });
+    }
   };
 
   const handleRefreshResources = async () => {
@@ -158,7 +184,21 @@ const AgentCreatePage = () => {
     
     try {
       setLoading(true);
-      await agentService.createAgent(formData);
+      
+      // Create a copy of the form data to modify before submission
+      const submissionData = {
+        ...formData,
+        llmConfig: { ...formData.llmConfig }
+      };
+      
+      // Remove the model that's not being used based on modelType
+      if (modelType === 'standard') {
+        delete submissionData.llmConfig.s2sModel;
+      } else {
+        delete submissionData.llmConfig.model;
+      }
+      
+      await agentService.createAgent(submissionData);
       navigate('/dashboard');
     } catch (error) {
       setError(error.response?.data?.message || 'Failed to create agent. Please try again.');
@@ -251,7 +291,7 @@ const AgentCreatePage = () => {
                       </optgroup>
                     ))}
                   </Form.Select>
-                  {formData.voiceId && formData.llmConfig.s2sModel && (
+                  {formData.voiceId && formData.llmConfig.s2sModel && modelType === 'realtime' && (
                     <Form.Text className={compatibilityError ? "text-danger" : "text-success"}>
                       {compatibilityError || "✓ Voice is compatible with selected model"}
                     </Form.Text>
@@ -261,38 +301,69 @@ const AgentCreatePage = () => {
                 <h4 className="mt-4 mb-3">LLM Configuration</h4>
                 
                 <Form.Group className="mb-3">
-                  <Form.Label>Model* ({resources.models.length} available)</Form.Label>
-                  <Form.Select
-                    name="model"
-                    value={formData.llmConfig.model}
-                    onChange={handleLlmConfigChange}
-                    required
-                  >
-                    <option value="">Select a model</option>
-                    {resources.models.map(model => (
-                      <option key={model} value={model}>
-                        {model}
-                      </option>
-                    ))}
-                  </Form.Select>
+                  <Form.Label>Model Type*</Form.Label>
+                  <div>
+                    <Form.Check
+                      inline
+                      type="radio"
+                      label="Standard Model"
+                      name="modelTypeRadio"
+                      id="standardModel"
+                      checked={modelType === 'standard'}
+                      onChange={() => handleModelTypeChange('standard')}
+                    />
+                    <Form.Check
+                      inline
+                      type="radio"
+                      label="Real-time Speech-to-Speech Model"
+                      name="modelTypeRadio"
+                      id="realtimeModel"
+                      checked={modelType === 'realtime'}
+                      onChange={() => handleModelTypeChange('realtime')}
+                    />
+                  </div>
+                  <Form.Text className="text-muted">
+                    Choose one model type. Standard models are for text processing, while real-time models are for speech-to-speech conversations.
+                  </Form.Text>
                 </Form.Group>
                 
-                <Form.Group className="mb-3">
-                  <Form.Label>Speech-to-Speech Model* ({resources.s2sModels.length} available)</Form.Label>
-                  <Form.Select
-                    name="s2sModel"
-                    value={formData.llmConfig.s2sModel}
-                    onChange={handleLlmConfigChange}
-                    required
-                  >
-                    <option value="">Select a speech-to-speech model</option>
-                    {resources.s2sModels.map(model => (
-                      <option key={model} value={model}>
-                        {model}
-                      </option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
+                {modelType === 'standard' && (
+                  <Form.Group className="mb-3">
+                    <Form.Label>Model* ({resources.models.length} available)</Form.Label>
+                    <Form.Select
+                      name="model"
+                      value={formData.llmConfig.model}
+                      onChange={handleLlmConfigChange}
+                      required={modelType === 'standard'}
+                    >
+                      <option value="">Select a model</option>
+                      {resources.models.map(model => (
+                        <option key={model} value={model}>
+                          {model}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                )}
+                
+                {modelType === 'realtime' && (
+                  <Form.Group className="mb-3">
+                    <Form.Label>Speech-to-Speech Model* ({resources.s2sModels.length} available)</Form.Label>
+                    <Form.Select
+                      name="s2sModel"
+                      value={formData.llmConfig.s2sModel}
+                      onChange={handleLlmConfigChange}
+                      required={modelType === 'realtime'}
+                    >
+                      <option value="">Select a speech-to-speech model</option>
+                      {resources.s2sModels.map(model => (
+                        <option key={model} value={model}>
+                          {model}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                )}
                 
                 <Form.Group className="mb-3">
                   <Form.Label>Temperature (0-1)</Form.Label>
