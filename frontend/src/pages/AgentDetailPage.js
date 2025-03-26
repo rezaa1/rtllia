@@ -22,17 +22,37 @@ const AgentDetailPage = () => {
   useEffect(() => {
     const fetchAgentData = async () => {
       try {
-        const agentData = await agentService.getAgentById(id);
+        // Validate agent ID before making API request
+        if (!id || id === 'undefined' || id === 'null') {
+          console.error('Invalid agent ID:', id);
+          setError('Invalid agent ID. Please select a valid agent.');
+          setLoading(false);
+          return;
+        }
+
+        // Ensure ID is a valid number
+        const parsedId = parseInt(id, 10);
+        if (isNaN(parsedId)) {
+          console.error('Agent ID is not a valid number:', id);
+          setError('Agent ID must be a valid number.');
+          setLoading(false);
+          return;
+        }
+
+        console.log('Fetching agent with ID:', parsedId);
+        const agentData = await agentService.getAgentById(parsedId);
         setAgent(agentData);
         
         // Fetch calls for this agent
         const callsData = await callService.getCalls();
-        const agentCalls = callsData.filter(call => call.agent._id === id);
+        // Use 'id' instead of '_id' for Sequelize compatibility
+        const agentCalls = callsData.filter(call => call.agent && call.agent.id === parsedId);
         setCalls(agentCalls);
         
         setLoading(false);
       } catch (error) {
-        setError('Failed to load agent details. Please try again.');
+        console.error('Error fetching agent data:', error);
+        setError(error.response?.data?.message || 'Failed to load agent details. Please try again.');
         setLoading(false);
       }
     };
@@ -58,10 +78,23 @@ const AgentDetailPage = () => {
       return;
     }
     
+    // Validate agent ID before making API request
+    if (!id || id === 'undefined' || id === 'null') {
+      setCallError('Invalid agent ID. Cannot make call with invalid agent.');
+      return;
+    }
+
+    // Ensure ID is a valid number
+    const parsedId = parseInt(id, 10);
+    if (isNaN(parsedId)) {
+      setCallError('Agent ID must be a valid number.');
+      return;
+    }
+    
     try {
       setCallLoading(true);
       await callService.createCall({
-        agentId: id,
+        agentId: parsedId, // Use parsed ID
         fromNumber: callForm.fromNumber,
         toNumber: callForm.toNumber
       });
@@ -70,7 +103,8 @@ const AgentDetailPage = () => {
       
       // Refresh calls list
       const callsData = await callService.getCalls();
-      const agentCalls = callsData.filter(call => call.agent._id === id);
+      // Use 'id' instead of '_id' for Sequelize compatibility
+      const agentCalls = callsData.filter(call => call.agent && call.agent.id === parsedId);
       setCalls(agentCalls);
       
       // Reset form
@@ -99,8 +133,20 @@ const AgentDetailPage = () => {
     return (
       <Container className="py-5">
         <Alert variant="danger">{error}</Alert>
-        <Button variant="primary" onClick={() => navigate('/dashboard')}>
-          Back to Dashboard
+        <Button variant="primary" onClick={() => navigate('/agents')}>
+          Back to Agents
+        </Button>
+      </Container>
+    );
+  }
+
+  // Additional validation to ensure agent data is available
+  if (!agent) {
+    return (
+      <Container className="py-5">
+        <Alert variant="warning">Agent not found or data is unavailable.</Alert>
+        <Button variant="primary" onClick={() => navigate('/agents')}>
+          Back to Agents
         </Button>
       </Container>
     );
@@ -119,9 +165,9 @@ const AgentDetailPage = () => {
           <Button 
             variant="outline-secondary" 
             className="me-2"
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/agents')}
           >
-            Back to Dashboard
+            Back to Agents
           </Button>
         </Col>
       </Row>
@@ -139,12 +185,12 @@ const AgentDetailPage = () => {
                 </Col>
                 <Col md={6}>
                   <h5>LLM Configuration</h5>
-                  {agent.llmConfiguration ? (
+                  {agent.llmConfig ? (
                     <>
-                      <p><strong>Model:</strong> {agent.llmConfiguration.model}</p>
-                      <p><strong>S2S Model:</strong> {agent.llmConfiguration.s2sModel || 'Not specified'}</p>
-                      <p><strong>Temperature:</strong> {agent.llmConfiguration.temperature}</p>
-                      <p><strong>High Priority:</strong> {agent.llmConfiguration.highPriority ? 'Yes' : 'No'}</p>
+                      <p><strong>Model:</strong> {agent.llmConfig.model || 'Not specified'}</p>
+                      <p><strong>S2S Model:</strong> {agent.llmConfig.s2sModel || 'Not specified'}</p>
+                      <p><strong>Temperature:</strong> {agent.llmConfig.temperature}</p>
+                      <p><strong>High Priority:</strong> {agent.llmConfig.highPriority ? 'Yes' : 'No'}</p>
                     </>
                   ) : (
                     <p>No LLM configuration available</p>
@@ -234,7 +280,7 @@ const AgentDetailPage = () => {
                     </thead>
                     <tbody>
                       {calls.map(call => (
-                        <tr key={call._id}>
+                        <tr key={call.id}>
                           <td>{new Date(call.createdAt).toLocaleString()}</td>
                           <td>{call.fromNumber}</td>
                           <td>{call.toNumber}</td>
