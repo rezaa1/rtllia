@@ -129,3 +129,4 @@ exports.tenantResolver = async (req, res, next) => {
     console.error('Tenant resolver middleware error:', error);
     next(); // Continue even if tenant resolution fails
   }
+};
