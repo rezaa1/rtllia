@@ -25,13 +25,26 @@ class RetellService {
       console.log('Making Retell API request to:', url);
       
       // First, create a Retell LLM
-      const llmResponse = await this.api.post('/create-retell-llm', {
-        model: llmConfig.model,
+      // Handle the constraint: Cannot set both model and s2s_model
+      const llmRequestData = {
         temperature: llmConfig.temperature || 0,
         system_prompt: llmConfig.generalPrompt || '',
-        ...(llmConfig.s2sModel && { s2s_model: llmConfig.s2sModel }),
         high_priority: llmConfig.highPriority || false
-      });
+      };
+      
+      // Prioritize s2s_model if both are provided
+      if (llmConfig.s2sModel) {
+        llmRequestData.s2s_model = llmConfig.s2sModel;
+      } else if (llmConfig.model) {
+        llmRequestData.model = llmConfig.model;
+      } else {
+        // Default to a standard model if neither is provided
+        llmRequestData.model = 'gpt-4';
+      }
+      
+      console.log('Creating Retell LLM with config:', llmRequestData);
+      
+      const llmResponse = await this.api.post('/create-retell-llm', llmRequestData);
       
       if (!llmResponse.data || !llmResponse.data.llm_id) {
         throw new Error('Invalid response structure from Retell API when creating LLM');
@@ -79,13 +92,13 @@ class RetellService {
       if (error.response?.status === 401) {
         throw new Error('Invalid Retell API key');
       } else if (error.response?.status === 400) {
-        throw new Error(`Invalid request: ${error.response.data.error_message || 'Bad request'}`);
+        throw new Error(`Invalid request: ${error.response.data.message || 'Bad request'}`);
       } else if (error.response?.status === 429) {
         throw new Error('Rate limit exceeded. Please try again later.');
       } else if (!error.response) {
         throw new Error('Network error: Unable to reach Retell API. Please check your API key and network connection.');
       } else {
-        throw new Error(`Retell API error: ${error.response.data.error_message || error.message}`);
+        throw new Error(`Retell API error: ${error.response.data.message || error.message}`);
       }
     }
   }
@@ -125,7 +138,7 @@ class RetellService {
       } else if (error.response?.status === 404) {
         throw new Error('Agent not found in Retell');
       } else {
-        throw new Error(`Failed to update Retell agent: ${error.response?.data?.error_message || error.message}`);
+        throw new Error(`Failed to update Retell agent: ${error.response?.data?.message || error.message}`);
       }
     }
   }
@@ -153,7 +166,7 @@ class RetellService {
       } else if (error.response?.status === 404) {
         throw new Error('Agent not found in Retell');
       } else {
-        throw new Error(`Failed to delete Retell agent: ${error.response?.data?.error_message || error.message}`);
+        throw new Error(`Failed to delete Retell agent: ${error.response?.data?.message || error.message}`);
       }
     }
   }
@@ -192,9 +205,9 @@ class RetellService {
       if (error.response?.status === 401) {
         throw new Error('Invalid Retell API key');
       } else if (error.response?.status === 400) {
-        throw new Error(`Invalid request: ${error.response.data.error_message || 'Bad request'}`);
+        throw new Error(`Invalid request: ${error.response.data.message || 'Bad request'}`);
       } else {
-        throw new Error(`Failed to create phone call: ${error.response?.data?.error_message || error.message}`);
+        throw new Error(`Failed to create phone call: ${error.response?.data?.message || error.message}`);
       }
     }
   }
@@ -227,7 +240,7 @@ class RetellService {
       } else if (error.response?.status === 404) {
         throw new Error('Call not found');
       } else {
-        throw new Error(`Failed to get call status: ${error.response?.data?.error_message || error.message}`);
+        throw new Error(`Failed to get call status: ${error.response?.data?.message || error.message}`);
       }
     }
   }
