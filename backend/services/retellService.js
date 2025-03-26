@@ -15,39 +15,255 @@ class RetellService {
         'Authorization': `Bearer ${process.env.RETELL_API_KEY}`,
         'Content-Type': 'application/json'
       },
-      timeout: 10000 // 10 second timeout
+      timeout: 15000 // Increased timeout to 15 seconds
     });
+    
+    // Default voices and models to use as fallback
+    this.defaultVoices = [
+      {
+        voice_id: "11labs-Rachel",
+        voice_name: "Rachel",
+        provider: "elevenlabs",
+        gender: "female",
+        accent: "American",
+        age: "adult"
+      },
+      {
+        voice_id: "11labs-Domi",
+        voice_name: "Domi",
+        provider: "elevenlabs",
+        gender: "female",
+        accent: "American",
+        age: "adult"
+      },
+      {
+        voice_id: "11labs-Adam",
+        voice_name: "Adam",
+        provider: "elevenlabs",
+        gender: "male",
+        accent: "American",
+        age: "adult"
+      },
+      {
+        voice_id: "11labs-Antoni",
+        voice_name: "Antoni",
+        provider: "elevenlabs",
+        gender: "male",
+        accent: "American",
+        age: "adult"
+      },
+      {
+        voice_id: "deepgram-nova",
+        voice_name: "Nova",
+        provider: "deepgram",
+        gender: "female",
+        accent: "American",
+        age: "adult"
+      }
+    ];
+    
+    this.defaultLLMs = [
+      {
+        model: "gpt-4",
+        s2s_model: null
+      },
+      {
+        model: null,
+        s2s_model: "gpt-4o-realtime"
+      },
+      {
+        model: "claude-3-opus-20240229",
+        s2s_model: null
+      }
+    ];
+    
+    // Cache for voices and LLMs
+    this.voicesCache = null;
+    this.llmsCache = null;
+    this.lastVoicesFetch = 0;
+    this.lastLLMsFetch = 0;
+    this.cacheTTL = 5 * 60 * 1000; // 5 minutes cache TTL
   }
 
-  async listVoices() {
+  async listVoices(forceRefresh = false) {
     try {
+      const now = Date.now();
+      
+      // Return cached data if available and not expired
+      if (!forceRefresh && this.voicesCache && (now - this.lastVoicesFetch < this.cacheTTL)) {
+        console.log('Using cached voices data');
+        return this.voicesCache;
+      }
+      
       console.log('Fetching available voices from RetellAI');
-      const response = await this.api.get('/list-voices');
-      console.log(`Retrieved ${response.data.length} voices from RetellAI`);
-      return response.data;
+      
+      // Make up to 3 attempts to fetch voices
+      let attempts = 0;
+      let error;
+      
+      while (attempts < 3) {
+        try {
+          const response = await this.api.get('/list-voices');
+          
+          if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+            console.log(`Retrieved ${response.data.length} voices from RetellAI`);
+            
+            // Update cache
+            this.voicesCache = response.data;
+            this.lastVoicesFetch = now;
+            
+            return response.data;
+          } else {
+            console.warn('RetellAI returned empty or invalid voices data, retrying...');
+            attempts++;
+          }
+        } catch (err) {
+          console.error(`Attempt ${attempts + 1} failed:`, err.message);
+          error = err;
+          attempts++;
+          
+          // Wait before retrying
+          if (attempts < 3) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+      }
+      
+      // If we get here, all attempts failed
+      console.error('All attempts to fetch voices failed, using default voices');
+      console.error('Error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+      
+      // Use default voices as fallback
+      return this.defaultVoices;
     } catch (error) {
       console.error('Error fetching voices from RetellAI:', {
         status: error.response?.status,
         data: error.response?.data,
         message: error.message
       });
-      throw new Error(`Failed to fetch voices: ${error.response?.data?.message || error.message}`);
+      
+      // Use default voices as fallback
+      console.log('Using default voices as fallback');
+      return this.defaultVoices;
     }
   }
 
-  async listLLMs() {
+  async listLLMs(forceRefresh = false) {
     try {
+      const now = Date.now();
+      
+      // Return cached data if available and not expired
+      if (!forceRefresh && this.llmsCache && (now - this.lastLLMsFetch < this.cacheTTL)) {
+        console.log('Using cached LLMs data');
+        return this.llmsCache;
+      }
+      
       console.log('Fetching available LLMs from RetellAI');
-      const response = await this.api.get('/list-retell-llms');
-      console.log(`Retrieved ${response.data.length} LLMs from RetellAI`);
-      return response.data;
+      
+      // Make up to 3 attempts to fetch LLMs
+      let attempts = 0;
+      let error;
+      
+      while (attempts < 3) {
+        try {
+          const response = await this.api.get('/list-retell-llms');
+          
+          if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+            console.log(`Retrieved ${response.data.length} LLMs from RetellAI`);
+            
+            // Extract model information for easier use in frontend
+            const processedLLMs = response.data.map(llm => ({
+              llm_id: llm.llm_id,
+              model: llm.model,
+              s2s_model: llm.s2s_model,
+              model_temperature: llm.model_temperature,
+              model_high_priority: llm.model_high_priority
+            }));
+            
+            // Update cache
+            this.llmsCache = processedLLMs;
+            this.lastLLMsFetch = now;
+            
+            return processedLLMs;
+          } else {
+            console.warn('RetellAI returned empty or invalid LLMs data, retrying...');
+            attempts++;
+          }
+        } catch (err) {
+          console.error(`Attempt ${attempts + 1} failed:`, err.message);
+          error = err;
+          attempts++;
+          
+          // Wait before retrying
+          if (attempts < 3) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+      }
+      
+      // If we get here, all attempts failed
+      console.error('All attempts to fetch LLMs failed, using default LLMs');
+      console.error('Error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+      
+      // Use default LLMs as fallback
+      return this.defaultLLMs;
     } catch (error) {
       console.error('Error fetching LLMs from RetellAI:', {
         status: error.response?.status,
         data: error.response?.data,
         message: error.message
       });
-      throw new Error(`Failed to fetch LLMs: ${error.response?.data?.message || error.message}`);
+      
+      // Use default LLMs as fallback
+      console.log('Using default LLMs as fallback');
+      return this.defaultLLMs;
+    }
+  }
+
+  async getAvailableModels() {
+    try {
+      const llms = await this.listLLMs();
+      
+      // Extract unique models and s2s_models
+      const models = new Set();
+      const s2sModels = new Set();
+      
+      llms.forEach(llm => {
+        if (llm.model) models.add(llm.model);
+        if (llm.s2s_model) s2sModels.add(llm.s2s_model);
+      });
+      
+      // If no models were found, add defaults
+      if (models.size === 0) {
+        models.add('gpt-4');
+        models.add('claude-3-opus-20240229');
+      }
+      
+      // If no s2s_models were found, add defaults
+      if (s2sModels.size === 0) {
+        s2sModels.add('gpt-4o-realtime');
+      }
+      
+      return {
+        models: Array.from(models),
+        s2sModels: Array.from(s2sModels)
+      };
+    } catch (error) {
+      console.error('Error getting available models:', error);
+      
+      // Return default models as fallback
+      return {
+        models: ['gpt-4', 'claude-3-opus-20240229'],
+        s2sModels: ['gpt-4o-realtime']
+      };
     }
   }
 
@@ -61,21 +277,30 @@ class RetellService {
         throw new Error(`Voice ${voiceId} not found. Please choose from available voices.`);
       }
       
-      // For now, we'll implement a simple compatibility check based on the error message
-      // In a production environment, you would want to get this information from RetellAI's API
-      // or maintain a compatibility matrix
-      
-      // Known incompatibilities based on error messages
+      // Known incompatibilities based on error messages and provider
       const incompatiblePairs = [
         { voiceId: '11labs-Adrian', s2sModel: 'gpt-4o-realtime' }
       ];
       
-      const isIncompatible = incompatiblePairs.some(pair => 
+      // Provider-based incompatibilities
+      const providerIncompatibilities = [
+        { provider: 'elevenlabs', s2sModel: 'gpt-4o-realtime', incompatible: true }
+      ];
+      
+      // Check for specific voice-model incompatibility
+      const isSpecificIncompatible = incompatiblePairs.some(pair => 
         pair.voiceId === voiceId && pair.s2sModel === s2sModel
       );
       
-      if (isIncompatible) {
-        throw new Error(`Voice ${voiceId} is not compatible with s2s model ${s2sModel}`);
+      // Check for provider-based incompatibility
+      const isProviderIncompatible = providerIncompatibilities.some(pair => 
+        pair.provider === voice.provider && 
+        pair.s2sModel === s2sModel && 
+        pair.incompatible
+      );
+      
+      if (isSpecificIncompatible || isProviderIncompatible) {
+        throw new Error(`Voice ${voiceId} (provider: ${voice.provider}) is not compatible with s2s model ${s2sModel}`);
       }
       
       return { compatible: true, voice };
