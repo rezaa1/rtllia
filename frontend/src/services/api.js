@@ -2,52 +2,35 @@ import axios from 'axios';
 
 // Create axios instance with base URL
 const API = axios.create({
-  baseURL: '/api',
-  headers: {
-    'Content-Type': 'application/json'
-  }
+  baseURL: process.env.REACT_APP_API_URL || '/api'
 });
 
-// Add auth token to requests
+// Add token to requests if it exists
 API.interceptors.request.use(
-  (config) => {
+  config => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log('Request Config:', {
-      url: config.url,
-      method: config.method,
-      headers: config.headers
-    });
     return config;
   },
-  (error) => {
-    console.error('Request Interceptor Error:', error);
-    return Promise.reject(error);
-  }
+  error => Promise.reject(error)
 );
 
-// Add response interceptor for better error handling
+// Handle token expiration and other common errors
 API.interceptors.response.use(
-  (response) => {
-    console.log('Response:', {
-      status: response.status,
-      data: response.data
-    });
-    return response;
-  },
-  (error) => {
-    console.error('Response Error:', {
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message
-    });
+  response => response,
+  error => {
+    if (error.response && error.response.status === 401) {
+      // Token expired or invalid
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
     return Promise.reject(error);
   }
 );
 
-// Handle tenant-specific requests
+// Set tenant header for multi-tenant requests
 export const setTenantHeader = (domain) => {
   if (domain) {
     API.defaults.headers.common['X-Tenant-Domain'] = domain;
@@ -88,6 +71,30 @@ export const authService = {
   
   updateProfile: async (userData) => {
     const response = await API.put('/users/profile', userData);
+    return response.data;
+  }
+};
+
+// Resource service for fetching voices, models, etc.
+export const resourceService = {
+  getAvailableResources: async (forceRefresh = false) => {
+    const url = forceRefresh 
+      ? '/resources/available-resources?forceRefresh=true' 
+      : '/resources/available-resources';
+    const response = await API.get(url);
+    return response.data;
+  },
+  
+  refreshResources: async () => {
+    const response = await API.post('/resources/refresh-resources');
+    return response.data;
+  },
+  
+  checkCompatibility: async (voiceId, s2sModel) => {
+    const response = await API.post('/resources/check-compatibility', {
+      voiceId,
+      s2sModel
+    });
     return response.data;
   }
 };
