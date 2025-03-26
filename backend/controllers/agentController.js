@@ -228,4 +228,3 @@ module.exports = {
   getAgentById,
   updateAgent,
   deleteAgent
-};

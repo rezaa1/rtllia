@@ -34,10 +34,11 @@ class RetellService {
         }
       });
       
+      // Updated to match the RetellAI API documentation
       const response = await this.api.post('/create-agent', {
         response_engine: {
-          llm_id: llmConfig.llmId, // Assuming llmId is part of llmConfig
-          type: 'retell-llm'
+          type: 'retell-llm',
+          llm_id: llmConfig.llmId
         },
         voice_id: voiceId,
         llm_config: {
@@ -51,17 +52,17 @@ class RetellService {
 
       console.log('Retell API Response:', response.data);
 
-      if (!response.data || !response.data.id || !response.data.llm_config_id) {
+      if (!response.data || !response.data.agent_id) {
         throw new Error('Invalid response structure from Retell API');
       }
 
       return {
-        retellAgentId: response.data.id,
-        retellLlmId: response.data.llm_config_id
+        retellAgentId: response.data.agent_id,
+        retellLlmId: response.data.response_engine?.llm_id
       };
     } catch (error) {
       console.error('Retell API Error Details:', {
-        url: `${this.api.defaults.baseURL}/agent-create`,
+        url: `${this.api.defaults.baseURL}/create-agent`,
         status: error.response?.status,
         statusText: error.response?.statusText,
         data: error.response?.data,
@@ -92,20 +93,26 @@ class RetellService {
 
   async updateRetellAgent(agentId, voiceId, llmId) {
     try {
-      const url = `${this.api.defaults.baseURL}/agents/${agentId}`;
+      const url = `${this.api.defaults.baseURL}/update-agent/${agentId}`;
       console.log('Making Retell API request to:', url);
       console.log('Updating Retell agent:', { agentId, voiceId, llmId });
       
-      const response = await this.api.put(`/agents/${agentId}`, {
+      // Updated to match the RetellAI API documentation
+      const response = await this.api.patch(`/update-agent/${agentId}`, {
         voice_id: voiceId,
-        ...(llmId && { llm_config_id: llmId })
+        ...(llmId && { 
+          response_engine: {
+            type: 'retell-llm',
+            llm_id: llmId
+          }
+        })
       });
 
       console.log('Retell update response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error updating Retell agent:', {
-        url: `${this.api.defaults.baseURL}/agents/${agentId}`,
+        url: `${this.api.defaults.baseURL}/update-agent/${agentId}`,
         status: error.response?.status,
         data: error.response?.data,
         message: error.message
@@ -123,16 +130,17 @@ class RetellService {
 
   async deleteRetellAgent(agentId) {
     try {
-      const url = `${this.api.defaults.baseURL}/agents/${agentId}`;
+      const url = `${this.api.defaults.baseURL}/delete-agent/${agentId}`;
       console.log('Making Retell API request to:', url);
       console.log('Deleting Retell agent:', agentId);
       
-      const response = await this.api.delete(`/agents/${agentId}`);
+      // Updated to match the RetellAI API documentation
+      const response = await this.api.delete(`/delete-agent/${agentId}`);
       console.log('Retell delete response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error deleting Retell agent:', {
-        url: `${this.api.defaults.baseURL}/agents/${agentId}`,
+        url: `${this.api.defaults.baseURL}/delete-agent/${agentId}`,
         status: error.response?.status,
         data: error.response?.data,
         message: error.message
@@ -150,11 +158,12 @@ class RetellService {
 
   async createPhoneCall(fromNumber, toNumber, agentId) {
     try {
-      const url = `${this.api.defaults.baseURL}/calls`;
+      const url = `${this.api.defaults.baseURL}/create-phone-call`;
       console.log('Making Retell API request to:', url);
       console.log('Creating phone call:', { fromNumber, toNumber, agentId });
       
-      const response = await this.api.post('/calls', {
+      // Updated to match the RetellAI API documentation
+      const response = await this.api.post('/create-phone-call', {
         from_number: fromNumber,
         to_number: toNumber,
         agent_id: agentId
@@ -162,17 +171,17 @@ class RetellService {
 
       console.log('Phone call response:', response.data);
 
-      if (!response.data || !response.data.id) {
+      if (!response.data || !response.data.call_id) {
         throw new Error('Invalid response structure from Retell API');
       }
 
       return {
-        retellCallId: response.data.id,
-        status: response.data.status
+        retellCallId: response.data.call_id,
+        status: response.data.call_status
       };
     } catch (error) {
       console.error('Error creating phone call:', {
-        url: `${this.api.defaults.baseURL}/calls`,
+        url: `${this.api.defaults.baseURL}/create-phone-call`,
         status: error.response?.status,
         data: error.response?.data,
         message: error.message
@@ -190,21 +199,22 @@ class RetellService {
 
   async getCallStatus(callId) {
     try {
-      const url = `${this.api.defaults.baseURL}/calls/${callId}`;
+      const url = `${this.api.defaults.baseURL}/get-call/${callId}`;
       console.log('Making Retell API request to:', url);
       console.log('Getting call status for:', callId);
       
-      const response = await this.api.get(`/calls/${callId}`);
+      // Updated to match the RetellAI API documentation
+      const response = await this.api.get(`/get-call/${callId}`);
       console.log('Call status response:', response.data);
       
-      if (!response.data || !response.data.status) {
+      if (!response.data || !response.data.call_status) {
         throw new Error('Invalid response structure from Retell API');
       }
       
       return response.data;
     } catch (error) {
       console.error('Error getting call status:', {
-        url: `${this.api.defaults.baseURL}/calls/${callId}`,
+        url: `${this.api.defaults.baseURL}/get-call/${callId}`,
         status: error.response?.status,
         data: error.response?.data,
         message: error.message
