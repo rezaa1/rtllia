@@ -69,18 +69,18 @@ router.get('/:id/users', authMiddleware.protect, authMiddleware.organizationAdmi
 // @route   POST /api/organizations/:id/users
 // @desc    Add a user to an organization
 // @access  Private/Organization Admin
-router.post(
-  '/:id/users',
-  authMiddleware.protect,
-  authMiddleware.organizationAdmin,
-  [
-    body('email').isEmail().withMessage('Valid email is required'),
-    body('username').notEmpty().withMessage('Username is required'),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-    body('role').isIn(['user', 'admin']).withMessage('Role must be either user or admin')
-  ],
-  addUserToOrganization
-);
+// router.post(
+//   '/:id/users',
+//   authMiddleware.protect,
+//   authMiddleware.organizationAdmin,
+//   [
+//     body('email').isEmail().withMessage('Valid email is required'),
+//     body('username').notEmpty().withMessage('Username is required'),
+//     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+//     body('role').isIn(['user', 'admin']).withMessage('Role must be either user or admin')
+//   ],
+//   addUserToOrganization
+// );
 
 // @route   GET /api/organizations/check-slug/:slug
 // @desc    Check if a slug is available
