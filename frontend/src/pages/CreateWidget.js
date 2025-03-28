@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useAuth } from '../utils/AuthContext'; // Import the Auth context
 
 const CreateWidget = () => {
+  const { currentUser } = useAuth(); // Get the current user from context
   const [name, setName] = useState('');
   const [agentId, setAgentId] = useState('');
   const [themeColor, setThemeColor] = useState('#0088FF');
@@ -19,6 +21,10 @@ const CreateWidget = () => {
         headerText,
         welcomeMessage,
         allowedDomains: allowedDomains.split(',').map(domain => domain.trim()), // Convert to array
+      }, {
+        headers: {
+          Authorization: `Bearer ${currentUser.token}` // Include the token in the headers
+        }
       });
       console.log('Widget created:', response.data);
       // Optionally redirect or show success message
