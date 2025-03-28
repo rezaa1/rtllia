@@ -9,7 +9,8 @@ import {
   FaCog, 
   FaPalette, 
   FaUsers, 
-  FaCreditCard 
+  FaCreditCard,
+  FaClipboardList
 } from 'react-icons/fa';
 
 const Sidebar = () => {
@@ -45,6 +46,15 @@ const Sidebar = () => {
             className={`nav-link ${isActive('/calls') ? 'active' : ''}`}
           >
             <FaPhone className="me-2" /> Calls
+          </Link>
+        </Nav.Item>
+
+        <Nav.Item>
+          <Link 
+            to="/widgets" 
+            className={`nav-link ${isActive('/widgets') ? 'active' : ''}`}
+          >
+            <FaClipboardList className="me-2" /> Widgets
           </Link>
         </Nav.Item>
 
