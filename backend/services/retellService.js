@@ -360,7 +360,7 @@ class RetellService {
           llm_id: llmId
         },
         voice_id: voiceId,
-        name: agentName // Pass the agent name here
+        agent_name: agentName // Pass the agent name here
       });
 
       console.log('Retell API Response:', agentResponse.data);
