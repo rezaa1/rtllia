@@ -138,10 +138,10 @@ const getAgents = async (req, res) => {
 const getAgentById = async (req, res) => {
   try {
     // Validate agent ID
-    const agentId = req.params.retell_agent_id;
+    const agentId = req.params.id;
     
     if (!agentId || agentId === 'undefined') {
-      console.error('Invalid agent ID:', agentId);
+      console.error('Invalid agent ID:', agentId,req.params);
       return res.status(400).json({ message: 'Invalid agent ID' });
     }
     

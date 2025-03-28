@@ -77,7 +77,7 @@ const CallsPage = () => {
                   <tr key={call._id}>
                     <td>{new Date(call.createdAt).toLocaleString()}</td>
                     <td>
-                      <Link to={`/agents/${call.agent._id}`}>
+                      <Link to={`/agents/${call.agent.id}`}>
                         {call.agent.name}
                       </Link>
                     </td>
@@ -91,7 +91,7 @@ const CallsPage = () => {
                     </td>
                     <td>{call.duration ? `${call.duration}s` : 'N/A'}</td>
                     <td>
-                      <Link to={`/agents/${call.agent._id}`} className="btn btn-sm btn-info">
+                      <Link to={`/agents/${call.agent.id}`} className="btn btn-sm btn-info">
                         View Agent
                       </Link>
                     </td>

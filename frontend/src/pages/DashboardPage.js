@@ -27,7 +27,7 @@ const DashboardPage = () => {
     if (window.confirm('Are you sure you want to delete this agent?')) {
       try {
         await agentService.deleteAgent(id);
-        setAgents(agents.filter(agent => agent._id !== id));
+        setAgents(agents.filter(agent => agent.id !== id));
       } catch (error) {
         setError('Failed to delete agent. Please try again.');
       }
