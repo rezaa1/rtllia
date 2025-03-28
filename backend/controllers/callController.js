@@ -69,6 +69,8 @@ const getCalls = async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
     
+    console.log('Retrieved calls:', calls); // Log the calls fetched
+
     res.json(calls);
   } catch (error) {
     console.error(error);
@@ -138,9 +140,31 @@ const updateCallStatus = async (req, res) => {
   }
 };
 
+// @desc    Get call history for a user
+// @route   GET /api/calls/history
+// @access  Private
+const getCallHistory = async (req, res) => {
+  try {
+    const calls = await Call.findAll({
+      where: { agentId: req.user.agentId }, // Adjust based on your logic
+      order: [['startedAt', 'DESC']]
+    });
+
+    if (calls.length === 0) {
+      return res.status(404).json({ message: 'No call history found' });
+    }
+
+    res.status(200).json(calls);
+  } catch (error) {
+    console.error('Error fetching call history:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 module.exports = {
   createCall,
   getCalls,
   getCallById,
-  updateCallStatus
+  updateCallStatus,
+  getCallHistory
 };
