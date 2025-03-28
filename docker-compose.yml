@@ -56,8 +56,6 @@ services:
       NODE_ENV: production
       REACT_APP_API_URL: /api
       REACT_APP_WS_URL: ws://localhost:5000
-    ports:
-      - "3000:80"
     networks:
       - retell-network
     restart: unless-stopped
