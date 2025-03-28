@@ -20,6 +20,8 @@ const AgentDetailPage = () => {
   const [callSuccess, setCallSuccess] = useState('');
 
   useEffect(() => {
+    console.log('Agent ID from URL:', id);
+
     const fetchAgentData = async () => {
       try {
         // Validate agent ID before making API request
