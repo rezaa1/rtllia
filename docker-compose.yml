@@ -1,67 +1,66 @@
-version: '3.8'
+version: '3'
 
 services:
-  # PostgreSQL Database
   postgres:
-    build:
-      context: ./database
-    container_name: retell-postgres
+    image: postgres:14
+    container_name: rtllia-postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: retell_app
+      POSTGRES_DB: rtllia
     ports:
-      - "127.0.0.1:5432:5432"
+      - "5432:5432"
     volumes:
-      - ./data/postgress:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/postgresql_schema.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
-      - retell-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - rtllia-network
 
-  # Backend API
   backend:
     build:
       context: ./backend
-    container_name: retell-backend
+      dockerfile: Dockerfile
+    container_name: rtllia-backend
+    depends_on:
+      - postgres
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       PORT: 5000
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/rtllia
       JWT_SECRET: your_jwt_secret_key_here
-      RETELL_API_KEY: ${RETELL_API_KEY}
-      RETELL_API_BASE_URL: ${RETELL_API_BASE_URL}
-      DATABASE_URL: postgres://postgres:postgres@postgres:5432/retell_app
+      RETELL_API_KEY: your_retell_api_key_here
     ports:
       - "5000:5000"
-    depends_on:
-      postgres:
-        condition: service_healthy
     volumes:
-      - backend_uploads:/app/uploads
+      - ./backend:/app
+      - /app/node_modules
     networks:
-      - retell-network
-    restart: unless-stopped
+      - rtllia-network
+    command: npm run dev
 
-  # Frontend React Application
   frontend:
     build:
       context: ./frontend
-    container_name: retell-frontend
-    ports:
-      - "980:80"
+      dockerfile: Dockerfile
+    container_name: rtllia-frontend
     depends_on:
       - backend
+    environment:
+      NODE_ENV: development
+      REACT_APP_API_URL: http://localhost:5000/api
+      REACT_APP_WS_URL: ws://localhost:5000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     networks:
-      - retell-network
-    restart: unless-stopped
+      - rtllia-network
+    command: npm start
 
 networks:
-  retell-network:
+  rtllia-network:
     driver: bridge
 
 volumes:
   postgres_data:
-  backend_uploads:

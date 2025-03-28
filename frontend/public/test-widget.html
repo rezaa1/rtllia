@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Widget Test Page</title>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f7fb;
+      color: #333;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    
+    h1 {
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #0088FF;
+    }
+    
+    p {
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    
+    .card {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+    
+    h2 {
+      font-size: 20px;
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #0088FF;
+    }
+    
+    pre {
+      background-color: #f1f1f1;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    
+    .config-form {
+      margin-top: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    button {
+      background-color: #0088FF;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    
+    button:hover {
+      opacity: 0.9;
+    }
+    
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .test-controls {
+      margin-top: 20px;
+    }
+    
+    .test-button {
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .test-results {
+      margin-top: 15px;
+      padding: 10px;
+      background-color: #f1f1f1;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 14px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .success {
+      color: #4caf50;
+    }
+    
+    .error {
+      color: #f44336;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Chat/Voice Widget Test Page</h1>
+    
+    <div class="card">
+      <h2>About This Page</h2>
+      <p>This page demonstrates the chat/voice widget functionality. The widget allows users to interact with an AI agent through both text chat and voice conversations. Users can start with chat and then switch to voice mode if needed.</p>
+      <p><strong>Note:</strong> This test page uses mock data and simulated responses for testing purposes.</p>
+    </div>
+    
+    <div class="card">
+      <h2>Widget Configuration</h2>
+      <p>You can customize the widget appearance and behavior using the form below:</p>
+      
+      <div class="config-form">
+        <div class="form-group">
+          <label for="widget-id">Widget ID</label>
+          <input type="text" id="widget-id" value="1" placeholder="Enter widget ID">
+        </div>
+        
+        <div class="form-group">
+          <label for="agent-id">Agent ID</label>
+          <input type="text" id="agent-id" value="1" placeholder="Enter agent ID">
+        </div>
+        
+        <div class="form-group">
+          <label for="theme-color">Theme Color</label>
+          <input type="color" id="theme-color" value="#0088FF">
+        </div>
+        
+        <div class="form-group">
+          <label for="header-text">Header Text</label>
+          <input type="text" id="header-text" value="Chat with us" placeholder="Enter header text">
+        </div>
+        
+        <div class="form-group">
+          <label for="welcome-message">Welcome Message</label>
+          <input type="text" id="welcome-message" value="Hello! How can I help you today?" placeholder="Enter welcome message">
+        </div>
+        
+        <div class="form-group">
+          <label for="position">Widget Position</label>
+          <select id="position">
+            <option value="bottom-right">Bottom Right</option>
+            <option value="bottom-left">Bottom Left</option>
+            <option value="top-right">Top Right</option>
+            <option value="top-left">Top Left</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="auto-open">
+            <input type="checkbox" id="auto-open"> Auto-open widget
+          </label>
+        </div>
+        
+        <button id="apply-config">Apply Configuration</button>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>Test Controls</h2>
+      <p>Use these controls to test specific widget functionality:</p>
+      
+      <div class="test-controls">
+        <button id="test-open" class="test-button">Test Open Widget</button>
+        <button id="test-close" class="test-button">Test Close Widget</button>
+        <button id="test-send-message" class="test-button">Test Send Message</button>
+        <button id="test-voice-mode" class="test-button">Test Voice Mode</button>
+      </div>
+      
+      <div class="test-results" id="test-results">
+        <div>Test results will appear here...</div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>Embedding Code</h2>
+      <p>To embed this widget in your website, add the following code to your HTML:</p>
+      
+      <pre id="embed-code">&lt;script src="https://api.retellai.com/embed/widget.js?id=1" async&gt;&lt;/script&gt;</pre>
+    </div>
+    
+    <div class="footer">
+      <p>© 2025 Retell AI - Chat/Voice Widget Demo</p>
+    </div>
+  </div>
+  
+  <!-- Load mock script for testing -->
+  <script src="/test-widget-mock.js"></script>
+  
+  <script>
+    // Initialize widget configuration
+    window.rtlChatWidget = {
+      widgetId: '1',
+      agentId: '1',
+      apiBase: window.location.origin, // Use current origin for testing
+      config: {
+        position: 'bottom-right',
+        themeColor: '#0088FF',
+        headerText: 'Chat with us',
+        welcomeMessage: 'Hello! How can I help you today?',
+        autoOpen: false
+      }
+    };
+    
+    // Test results logger
+    function logTestResult(message, isSuccess = true) {
+      const resultsDiv = document.getElementById('test-results');
+      const timestamp = new Date().toLocaleTimeString();
+      const className = isSuccess ? 'success' : 'error';
+      resultsDiv.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+      resultsDiv.scrollTop = resultsDiv.scrollHeight;
+    }
+    
+    // Update configuration based on form inputs
+    document.getElementById('apply-config').addEventListener('click', function() {
+      const widgetId = document.getElementById('widget-id').value;
+      const agentId = document.getElementById('agent-id').value;
+      const themeColor = document.getElementById('theme-color').value;
+      const headerText = document.getElementById('header-text').value;
+      const welcomeMessage = document.getElementById('welcome-message').value;
+      const position = document.getElementById('position').value;
+      const autoOpen = document.getElementById('auto-open').checked;
+      
+      // Update embed code
+      document.getElementById('embed-code').textContent = 
+        `<script src="https://api.retellai.com/embed/widget.js?id=${widgetId}" async><\/script>`;
+      
+      // Remove existing widget if present
+      const existingButton = document.getElementById('rtl-chat-widget-button');
+      const existingContainer = document.getElementById('rtl-chat-widget-container');
+      
+      if (existingButton) {
+        existingButton.remove();
+      }
+      
+      if (existingContainer) {
+        existingContainer.remove();
+      }
+      
+      // Update configuration
+      window.rtlChatWidget = {
+        widgetId,
+        agentId,
+        apiBase: window.location.origin, // Use current origin for testing
+        config: {
+          position,
+          themeColor,
+          headerText,
+          welcomeMessage,
+          autoOpen
+        }
+      };
+      
+      // Load widget script
+      const script = document.createElement('script');
+      script.src = '/widget.js';
+      document.body.appendChild(script);
+      
+      logTestResult('Applied new widget configuration');
+    });
+    
+    // Test open widget
+    document.getElementById('test-open').addEventListener('click', function() {
+      if (window.rtlChatWidget && window.rtlChatWidget.open) {
+        window.rtlChatWidget.open();
+        logTestResult('Widget opened successfully');
+      } else {
+        logTestResult('Widget not initialized or open method not available', false);
+      }
+    });
+    
+    // Test close widget
+    document.getElementById('test-close').addEventListener('click', function() {
+      if (window.rtlChatWidget && window.rtlChatWidget.close) {
+        window.rtlChatWidget.close();
+        logTestResult('Widget closed successfully');
+      } else {
+        logTestResult('Widget not initialized or close method not available', false);
+      }
+    });
+    
+    // Test send message
+    document.getElementById('test-send-message').addEventListener('click', function() {
+      // This requires accessing the iframe content, which is not directly possible
+      // Instead, we'll log instructions for manual testing
+      logTestResult('To test sending a message: 1) Open the widget, 2) Type a message, 3) Click send button');
+    });
+    
+    // Test voice mode
+    document.getElementById('test-voice-mode').addEventListener('click', function() {
+      // This requires accessing the iframe content, which is not directly possible
+      // Instead, we'll log instructions for manual testing
+      logTestResult('To test voice mode: 1) Open the widget, 2) Click the phone icon, 3) Enter a phone number, 4) Click "Call me"');
+    });
+    
+    // Load widget script on page load
+    window.addEventListener('DOMContentLoaded', function() {
+      const script = document.createElement('script');
+      script.src = '/widget.js';
+      document.body.appendChild(script);
+      
+      logTestResult('Widget script loaded');
+    });
+  </script>
+</body>
+</html>

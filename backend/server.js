@@ -1,87 +1,59 @@
 const express = require('express');
-const dotenv = require('dotenv');
+const http = require('http');
 const cors = require('cors');
-const sequelize = require('./config/database');
+const dotenv = require('dotenv');
+const { sequelize } = require('./config/database');
+const WebSocketServer = require('./services/webSocketService');
 
 // Load environment variables
 dotenv.config();
 
-// Initialize express app
+// Initialize Express app
 const app = express();
 
 // Middleware
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Authorization', 'Content-Type', 'Accept', 'Origin', 'X-Requested-With']
-}));
-
+app.use(cors());
 app.use(express.json());
-
-// Debug middleware to log requests
-app.use((req, res, next) => {
-  console.log('Request:', {
-    method: req.method,
-    path: req.path,
-    headers: req.headers,
-    body: req.body
-  });
-  next();
-});
-
-// Import models and initialize associations
-const models = require('./models/index');
-
-// Import routes
-const userRoutes = require('./routes/userRoutes');
-const agentRoutes = require('./routes/agentRoutes');
-const callRoutes = require('./routes/callRoutes');
+app.use(express.urlencoded({ extended: false }));
 
 // Routes
-app.use('/api/users', userRoutes);
-app.use('/api/agents', agentRoutes);
-app.use('/api/calls', callRoutes);
+app.use('/api/users', require('./routes/userRoutes'));
+app.use('/api/organizations', require('./routes/organizationRoutes'));
+app.use('/api/agents', require('./routes/agentRoutes'));
+app.use('/api/calls', require('./routes/callRoutes'));
+app.use('/api/white-label', require('./routes/whiteLabelRoutes'));
+app.use('/api/resources', require('./routes/resourceRoutes'));
+app.use('/api/chat', require('./routes/chatRoutes'));
+app.use('/api/widgets', require('./routes/widgetRoutes'));
 
-// Import and use resource routes separately to avoid potential ordering issues
-try {
-  const resourceRoutes = require('./routes/resourceRoutes');
-  app.use('/api/resources', resourceRoutes);
-  console.log('Resource routes registered successfully');
-} catch (error) {
-  console.error('Error registering resource routes:', error);
-}
+// Serve static files from uploads directory
+app.use('/uploads', express.static('uploads'));
 
-// Root route
-app.get('/', (req, res) => {
-  res.send('Retell AI Integration API is running...');
-});
+// Create HTTP server
+const server = http.createServer(app);
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(err.status || 500).json({
-    message: err.message || 'Internal server error',
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
-  });
-});
+// Initialize WebSocket server
+const wss = new WebSocketServer(server);
 
-// Start server with Sequelize connection
-const startServer = async () => {
+// Define port
+const PORT = process.env.PORT || 5000;
+
+// Start server
+server.listen(PORT, async () => {
+  console.log(`Server running on port ${PORT}`);
+  
   try {
     // Test database connection
     await sequelize.authenticate();
-    console.log('PostgreSQL database connection has been established successfully.');
-    
-    // Start server
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
+    console.log('Database connection established successfully');
   } catch (error) {
-    console.error(`Database connection error: ${error.message}`);
-    process.exit(1);
+    console.error('Unable to connect to the database:', error);
   }
-};
+});
 
-// Start the server
-startServer();
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+  console.log('Unhandled Rejection:', err);
+  // Close server & exit process
+  server.close(() => process.exit(1));
+});

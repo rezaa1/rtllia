@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:20
 
 WORKDIR /app
 
@@ -11,11 +11,6 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
-# Create uploads directory for file uploads
-RUN mkdir -p uploads
-
-# Expose the port the app runs on
 EXPOSE 5000
 
-# Command to run the application
-CMD ["node", "server.js"]
+CMD ["npm", "start"]

@@ -27,7 +27,7 @@ const DashboardPage = () => {
     if (window.confirm('Are you sure you want to delete this agent?')) {
       try {
         await agentService.deleteAgent(id);
-        setAgents(agents.filter(agent => agent.id !== id));
+        setAgents(agents.filter(agent => agent._id !== id));
       } catch (error) {
         setError('Failed to delete agent. Please try again.');
       }
@@ -71,7 +71,6 @@ const DashboardPage = () => {
         <Table striped bordered hover responsive>
           <thead>
             <tr>
-              <th>ID</th>
               <th>Name</th>
               <th>Description</th>
               <th>Voice</th>
@@ -82,19 +81,18 @@ const DashboardPage = () => {
           <tbody>
             {agents.map((agent) => (
               <tr key={agent._id}>
-                <td>{agent.id}</td>
                 <td>{agent.name}</td>
                 <td>{agent.description || 'No description'}</td>
                 <td>{agent.voiceId}</td>
                 <td>{new Date(agent.createdAt).toLocaleDateString()}</td>
                 <td>
-                  <Link to={`/agents/${agent.id}`} className="btn btn-sm btn-info me-2">
+                  <Link to={`/agents/${agent._id}`} className="btn btn-sm btn-info me-2">
                     View
                   </Link>
                   <Button 
                     variant="danger" 
                     size="sm" 
-                    onClick={() => handleDeleteAgent(agent.id)}
+                    onClick={() => handleDeleteAgent(agent._id)}
                   >
                     Delete
                   </Button>

@@ -67,5 +67,4 @@ const testConnection = async () => {
 
 testConnection();
 
-// Export the sequelize instance
 module.exports = sequelize;
