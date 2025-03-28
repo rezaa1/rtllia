@@ -46,17 +46,13 @@ services:
     depends_on:
       - backend
     environment:
-      NODE_ENV: development
-      REACT_APP_API_URL: http://localhost:5000/api
+      NODE_ENV: production
+      REACT_APP_API_URL: /api
       REACT_APP_WS_URL: ws://localhost:5000
     ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - "3000:80"
     networks:
       - rtllia-network
-    command: npm start
 
 networks:
   rtllia-network:

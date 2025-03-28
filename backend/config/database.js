@@ -1,4 +1,4 @@
-const { Sequelize } = require('sequelize');
+const Sequelize = require('sequelize');
 const dotenv = require('dotenv');
 
 dotenv.config();
@@ -67,4 +67,4 @@ const testConnection = async () => {
 
 testConnection();
 
-module.exports = sequelize;
+module.exports = { sequelize };
