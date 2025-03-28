@@ -35,12 +35,12 @@ const authMiddleware = require('../middleware/authMiddleware');
 // @route   GET /api/organizations
 // @desc    Get all organizations (admin only)
 // @access  Private/Admin
-router.get('/', authMiddleware.protect, authMiddleware.admin, getAllOrganizations);
+// router.get('/', authMiddleware.protect, authMiddleware.admin, getAllOrganizations);
 
 // @route   GET /api/organizations/:id
 // @desc    Get organization by ID
 // @access  Private/Admin or Organization Admin
-router.get('/:id', authMiddleware.protect, authMiddleware.organizationAccess, getOrganizationById);
+// router.get('/:id', authMiddleware.protect, authMiddleware.organizationAccess, getOrganizationById);
 
 // @route   PUT /api/organizations/:id
 // @desc    Update organization
