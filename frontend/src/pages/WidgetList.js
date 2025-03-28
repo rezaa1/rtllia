@@ -1,17 +1,15 @@
    // frontend/src/pages/WidgetList.js
-   import React, { useEffect, useState, useContext } from 'react';
+   import React, { useEffect, useState } from 'react';
    import axios from 'axios';
-   import { Link } from 'react-router-dom';
-   import { AuthContext } from '../utils/AuthContext'; // Ensure the path is correct
+   import { Link, useParams } from 'react-router-dom';
 
    const WidgetList = () => {
-     const { currentUser } = useContext(AuthContext); // Get the current user from context
+     const { orgId } = useParams(); // Get the organization ID from URL parameters
      const [widgets, setWidgets] = useState([]);
 
      useEffect(() => {
        const fetchWidgets = async () => {
          try {
-           const orgId = currentUser.organizationId; // Access the organization ID from the user context
            const token = localStorage.getItem('token'); // Retrieve the token
            const response = await axios.get(`/api/widgets/organization/${orgId}`, {
              headers: {
@@ -25,7 +23,7 @@
        };
 
        fetchWidgets();
-     }, [currentUser]);
+     }, [orgId]);
 
      return (
        <div>
