@@ -186,6 +186,7 @@ const getAgentById = async (req, res) => {
     console.log('Fetched agent data:', agentData);
     
     res.json({
+      _id: agent.id,
       id: agent.id,
       name: agent.name,
       description: agent.description,
