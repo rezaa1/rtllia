@@ -313,3 +313,32 @@ exports.getOrganizationByDomain = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+// @desc    Get white label settings
+// @route   GET /api/organization/white-label
+// @access  Private
+const getWhiteLabelSettings = async (req, res) => {
+  try {
+    const organizationId = req.user.organizationId; // Get organization ID from the user
+    const organization = await Organization.findByPk(organizationId);
+
+    if (!organization) {
+      return res.status(404).json({ message: 'Organization not found' });
+    }
+
+    // Return the white label settings
+    res.json({
+      id: organization.id,
+      name: organization.name,
+      whiteLabelSettings: organization.whiteLabelSettings // Adjust based on your model
+    });
+  } catch (error) {
+    console.error('Error getting white label settings:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+module.exports = {
+  getWhiteLabelSettings,
+  // Other exports...
+};
