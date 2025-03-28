@@ -8,6 +8,11 @@ const createWidgetConfiguration = async (req, res) => {
   try {
     const { name, agentId, themeColor, headerText, welcomeMessage, allowedDomains } = req.body;
 
+    // Validate input data
+    if (!name || !agentId) {
+      return res.status(400).json({ message: 'Name and Agent ID are required' });
+    }
+
     // Check if agent exists and belongs to organization
     const agent = await Agent.findOne({
       where: {
