@@ -1,15 +1,15 @@
    // frontend/src/pages/WidgetList.js
    import React, { useEffect, useState } from 'react';
    import axios from 'axios';
-   import { Link, useParams } from 'react-router-dom';
+   import { Link } from 'react-router-dom';
 
    const WidgetList = () => {
-     const { orgId } = useParams(); // Get the organization ID from URL parameters
      const [widgets, setWidgets] = useState([]);
 
      useEffect(() => {
        const fetchWidgets = async () => {
          try {
+           const orgId = localStorage.getItem('orgId'); // Retrieve the organization ID from local storage
            const token = localStorage.getItem('token'); // Retrieve the token
            const response = await axios.get(`/api/widgets/organization/${orgId}`, {
              headers: {
@@ -23,7 +23,7 @@
        };
 
        fetchWidgets();
-     }, [orgId]);
+     }, []);
 
      return (
        <div>
