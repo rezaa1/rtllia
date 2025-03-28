@@ -5,6 +5,9 @@ const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const sequelize = require('../config/database');
+const organizationController = require('../controllers/organizationController');
+
+console.log(organizationController); // Add this line to see what is being imported
 
 // @desc    Create a new organization with initial admin user
 // @route   POST /api/organizations
