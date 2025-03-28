@@ -182,6 +182,9 @@ const getAgentById = async (req, res) => {
     
     console.log('Found agent:', agent.id, 'with LLM config:', llmConfig ? llmConfig.id : 'none');
     
+    const agentData = await retellService.getAgentById(parsedId);
+    console.log('Fetched agent data:', agentData);
+    
     res.json({
       id: agent.id,
       name: agent.name,
