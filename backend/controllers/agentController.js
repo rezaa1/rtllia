@@ -141,7 +141,7 @@ const getAgentById = async (req, res) => {
     const agentId = req.params.id;
     
     if (!agentId || agentId === 'undefined') {
-      console.error('Invalid agent ID:', agentId,req.params);
+      console.error('Invalid agent ID:', agentId, req.params);
       return res.status(400).json({ message: 'Invalid agent ID' });
     }
     
@@ -182,7 +182,8 @@ const getAgentById = async (req, res) => {
     
     console.log('Found agent:', agent.id, 'with LLM config:', llmConfig ? llmConfig.id : 'none');
     
-    const agentData = await retellService.getAgentById(parsedId);
+    // Use retellAgentId for the Retell API call
+    const agentData = await retellService.getAgentById(agent.retellAgentId);
     console.log('Fetched agent data:', agentData);
     
     res.json({

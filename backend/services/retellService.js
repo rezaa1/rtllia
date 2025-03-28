@@ -310,7 +310,7 @@ class RetellService {
     }
   }
 
-  async createRetellAgent(voiceId, llmConfig) {
+  async createRetellAgent(voiceId, llmConfig, agentName) {
     try {
       const url = `${this.api.defaults.baseURL}/create-agent`;
       console.log('Making Retell API request to:', url);
@@ -327,7 +327,6 @@ class RetellService {
       }
       
       // First, create a Retell LLM
-      // Handle the constraint: Cannot set both model and s2s_model
       const llmRequestData = {
         temperature: llmConfig.temperature || 0,
         system_prompt: llmConfig.generalPrompt || '',
@@ -340,8 +339,7 @@ class RetellService {
       } else if (llmConfig.model) {
         llmRequestData.model = llmConfig.model;
       } else {
-        // Default to a standard model if neither is provided
-        llmRequestData.model = 'gpt-4';
+        llmRequestData.model = 'gpt-4'; // Default model
       }
       
       console.log('Creating Retell LLM with config:', llmRequestData);
@@ -355,13 +353,14 @@ class RetellService {
       const llmId = llmResponse.data.llm_id;
       console.log('Created Retell LLM with ID:', llmId);
       
-      // Now create the agent with the LLM ID
+      // Now create the agent with the LLM ID and agent name
       const agentResponse = await this.api.post('/create-agent', {
         response_engine: {
           type: "retell-llm",
           llm_id: llmId
         },
-        voice_id: voiceId
+        voice_id: voiceId,
+        name: agentName // Pass the agent name here
       });
 
       console.log('Retell API Response:', agentResponse.data);
