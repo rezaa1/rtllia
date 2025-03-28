@@ -22,7 +22,7 @@ const createAgent = async (req, res) => {
     
     // Create agent in database
     const agent = await Agent.create({
-      name: req.body.name,
+      agent_name: req.body.name,
       description: req.body.description || '',
       retellAgentId,
       voiceId: req.body.voiceId,
