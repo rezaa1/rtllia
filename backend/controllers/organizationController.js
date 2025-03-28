@@ -71,6 +71,8 @@ exports.createOrganization = async (req, res) => {
       { expiresIn: '30d' }
     );
 
+    console.log('Token before request:', token);
+
     res.status(201).json({
       organization: {
         id: organization.id,
