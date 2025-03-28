@@ -14,6 +14,10 @@ const CreateWidget = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Debugging: Check if the token is available
+      console.log('Current User:', currentUser);
+      console.log('Token:', currentUser?.token);
+
       const response = await axios.post('/api/widgets', {
         name,
         agentId,
@@ -23,7 +27,7 @@ const CreateWidget = () => {
         allowedDomains: allowedDomains.split(',').map(domain => domain.trim()), // Convert to array
       }, {
         headers: {
-          Authorization: `Bearer ${currentUser.token}` // Include the token in the headers
+          Authorization: `Bearer ${currentUser?.token}` // Include the token in the headers
         }
       });
       console.log('Widget created:', response.data);
