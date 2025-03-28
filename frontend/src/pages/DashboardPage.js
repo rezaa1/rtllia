@@ -82,19 +82,19 @@ const DashboardPage = () => {
           <tbody>
             {agents.map((agent) => (
               <tr key={agent._id}>
-                <td>{agent.id}:{agent._id}</td>
+                <td>{agent.id}</td>
                 <td>{agent.name}</td>
                 <td>{agent.description || 'No description'}</td>
                 <td>{agent.voiceId}</td>
                 <td>{new Date(agent.createdAt).toLocaleDateString()}</td>
                 <td>
-                  <Link to={`/agents/${agent._id}`} className="btn btn-sm btn-info me-2">
+                  <Link to={`/agents/${agent.id}`} className="btn btn-sm btn-info me-2">
                     View
                   </Link>
                   <Button 
                     variant="danger" 
                     size="sm" 
-                    onClick={() => handleDeleteAgent(agent._id)}
+                    onClick={() => handleDeleteAgent(agent.id)}
                   >
                     Delete
                   </Button>

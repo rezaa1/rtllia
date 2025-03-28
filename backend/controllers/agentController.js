@@ -138,7 +138,7 @@ const getAgents = async (req, res) => {
 const getAgentById = async (req, res) => {
   try {
     // Validate agent ID
-    const agentId = req.params.id;
+    const agentId = req.params.retell_agent_id;
     
     if (!agentId || agentId === 'undefined') {
       console.error('Invalid agent ID:', agentId);
