@@ -17,12 +17,13 @@ const createAgent = async (req, res) => {
     // Create agent in Retell
     const { retellAgentId, retellLlmId } = await retellService.createRetellAgent(
       req.body.voiceId,
-      req.body.llmConfig
+      req.body.llmConfig,
+      req.body.name
     );
     
     // Create agent in database
     const agent = await Agent.create({
-      agent_name: req.body.name,
+      name: req.body.name,
       description: req.body.description || '',
       retellAgentId,
       voiceId: req.body.voiceId,
