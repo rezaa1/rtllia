@@ -71,6 +71,7 @@ const DashboardPage = () => {
         <Table striped bordered hover responsive>
           <thead>
             <tr>
+              <th>ID</th>
               <th>Name</th>
               <th>Description</th>
               <th>Voice</th>
@@ -81,6 +82,7 @@ const DashboardPage = () => {
           <tbody>
             {agents.map((agent) => (
               <tr key={agent._id}>
+                <td>{agent._id}</td>
                 <td>{agent.name}</td>
                 <td>{agent.description || 'No description'}</td>
                 <td>{agent.voiceId}</td>
