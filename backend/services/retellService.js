@@ -546,6 +546,37 @@ class RetellService {
       }
     }
   }
+  async getAgentById(agentId) {
+    try {
+      const url = `${this.api.defaults.baseURL}/get-agent/${agentId}`;
+      console.log('Making Retell API request to:', url);
+      
+      const response = await this.api.get(`/get-agent/${agentId}`);
+      console.log('Agent response:', response.data);
+      
+      if (!response.data || !response.data.agent_id) {
+        throw new Error('Invalid response structure from Retell API');
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error getting agent by ID:', {
+        url: `${this.api.defaults.baseURL}/get-agent/${agentId}`,
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+      
+      if (error.response?.status === 401) {
+        throw new Error('Invalid Retell API key');
+      } else if (error.response?.status === 404) {
+        throw new Error('Agent not found');
+      } else {
+        throw new Error(`Failed to get agent: ${error.response?.data?.message || error.message}`);
+      }
+    }
+  }
+
 }
 
 // Create a singleton instance
