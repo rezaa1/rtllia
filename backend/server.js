@@ -4,6 +4,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const { sequelize } = require('./config/database');
 const WebSocketServer = require('./services/webSocketService');
+const widgetRoutes = require('./routes/widgetRoutes'); // Import the widget routes
 
 // Load environment variables
 dotenv.config();
@@ -24,7 +25,7 @@ app.use('/api/calls', require('./routes/callRoutes'));
 app.use('/api/white-label', require('./routes/whiteLabelRoutes'));
 app.use('/api/resources', require('./routes/resourceRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
-app.use('/api/widgets', require('./routes/widgetRoutes'));
+app.use('/api/widgets', widgetRoutes);
 
 // Serve static files from uploads directory
 app.use('/uploads', express.static('uploads'));
