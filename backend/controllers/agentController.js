@@ -1,5 +1,5 @@
 const { Agent, LLMConfiguration } = require('../models');
-const { sequelize } = require('../config/database');
+const sequelize = require('../config/database');
 const retellService = require('../services/retellService');
 
 // @route   POST /api/agents
