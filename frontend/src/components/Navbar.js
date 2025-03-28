@@ -15,6 +15,9 @@ const Navbar = () => {
           <Link to="/widgets">Widgets</Link>
         </li>
         <li>
+          <Link to="/widgets/create">Create Widget</Link>
+        </li>
+        <li>
           <Link to="/embed/auth">Embed Widget Auth</Link>
         </li>
       </ul>

@@ -7,6 +7,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Navigation from './components/Navigation';
 import Sidebar from './components/Sidebar';
 import ProtectedRoute from './components/ProtectedRoute';
+import Navbar from './components/Navbar';
+import WidgetList from './pages/WidgetList';
+import EmbedWidgetAuth from './pages/EmbedWidgetAuth';
+import CreateWidget from './pages/CreateWidget';
 
 // Import pages
 import HomePage from './pages/HomePage';
@@ -82,6 +86,11 @@ const AppContent = () => {
                 <ProfilePage />
               </ProtectedRoute>
             } />
+
+            {/* Widget routes */}
+            <Route path="/widgets" element={<WidgetList />} />
+            <Route path="/embed/auth" element={<EmbedWidgetAuth />} />
+            <Route path="/widgets/create" element={<CreateWidget />} />
 
             {/* Fallback route */}
             <Route path="*" element={<HomePage />} />
