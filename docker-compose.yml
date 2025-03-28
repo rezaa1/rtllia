@@ -39,8 +39,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - backend_uploads:/app/uploads
     networks:
       - retell-network
     restart: unless-stopped
@@ -54,6 +52,12 @@ services:
       - "980:80"
     depends_on:
       - backend
+    environment:
+      NODE_ENV: production
+      REACT_APP_API_URL: /api
+      REACT_APP_WS_URL: ws://localhost:5000
+    ports:
+      - "3000:80"
     networks:
       - retell-network
     restart: unless-stopped
