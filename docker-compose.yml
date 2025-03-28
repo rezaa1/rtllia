@@ -11,9 +11,9 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: retell_app
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./data/postgress:/var/lib/postgresql/data
     networks:
       - retell-network
     healthcheck:
@@ -31,7 +31,8 @@ services:
       NODE_ENV: production
       PORT: 5000
       JWT_SECRET: your_jwt_secret_key_here
-      RETELL_API_KEY: YOUR_RETELL_API_KEY
+      RETELL_API_KEY: ${RETELL_API_KEY}
+      RETELL_API_BASE_URL: ${RETELL_API_BASE_URL}
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/retell_app
     ports:
       - "5000:5000"
@@ -50,7 +51,7 @@ services:
       context: ./frontend
     container_name: retell-frontend
     ports:
-      - "80:80"
+      - "980:80"
     depends_on:
       - backend
     networks:
