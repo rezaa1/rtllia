@@ -14,6 +14,8 @@ const CreateWidget = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log('Current User:', currentUser);
+      console.log('Token:', currentUser.token);
       const response = await axios.post('/api/widgets', {
         name,
         agentId,
@@ -23,10 +25,11 @@ const CreateWidget = () => {
         allowedDomains: allowedDomains.split(',').map(domain => domain.trim()), // Convert to array
       }, {
         headers: {
-          Authorization: `Bearer ${currentUser.token}` // Include the token in the headers
+          Authorization: `Bearer ${currentUser.token}` // Ensure this is defined
         }
       });
       console.log('Widget created:', response.data);
+      localStorage.setItem('token', response.data.token); // Example of setting the token
       // Optionally redirect or show success message
     } catch (error) {
       console.error('Error creating widget:', error);
