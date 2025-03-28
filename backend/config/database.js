@@ -67,4 +67,6 @@ const testConnection = async () => {
 
 testConnection();
 
-module.exports = { sequelize };
+// Export both the sequelize instance directly and as a property
+module.exports = sequelize;
+module.exports.sequelize = sequelize;
