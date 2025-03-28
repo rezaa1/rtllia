@@ -2,7 +2,7 @@
    import React, { useEffect, useState, useContext } from 'react';
    import axios from 'axios';
    import { Link } from 'react-router-dom';
-   import { AuthContext } from '../utils/AuthContext'; // Import your Auth context
+   import { AuthContext } from '../utils/AuthContext'; // Ensure the path is correct
 
    const WidgetList = () => {
      const { currentUser } = useContext(AuthContext); // Get the current user from context
