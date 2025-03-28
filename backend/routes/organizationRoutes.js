@@ -80,4 +80,14 @@ router.get('/check-slug/:slug', organizationController.checkSlugAvailability);
 // @access  Public
 router.get('/domain/:domain', organizationController.getOrganizationByDomain);
 
+// @desc    Get organization white label settings
+// @route   GET /api/organization/white-label
+// @access  Private
+router.get('/white-label', authMiddleware.protect, organizationController.getWhiteLabelSettings);
+
+// @desc    Update organization white label settings
+// @route   PUT /api/organization/white-label
+// @access  Private
+router.put('/white-label', authMiddleware.protect, organizationController.updateWhiteLabelSettings);
+
 module.exports = router;

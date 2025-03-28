@@ -18,6 +18,9 @@ const Navbar = () => {
           <Link to="/widgets/create">Create Widget</Link>
         </li>
         <li>
+          <Link to="/organization/white-label">White Label Settings</Link>
+        </li>
+        <li>
           <Link to="/embed/auth">Embed Widget Auth</Link>
         </li>
       </ul>
