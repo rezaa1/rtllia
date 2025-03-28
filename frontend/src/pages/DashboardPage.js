@@ -82,7 +82,7 @@ const DashboardPage = () => {
           <tbody>
             {agents.map((agent) => (
               <tr key={agent._id}>
-                <td>{agent.id}</td>
+                <td>{agent.id}:{agent._id}</td>
                 <td>{agent.name}</td>
                 <td>{agent.description || 'No description'}</td>
                 <td>{agent.voiceId}</td>
