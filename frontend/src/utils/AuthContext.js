@@ -49,8 +49,10 @@ export const AuthProvider = ({ children }) => {
     try {
       const userData = await authService.login(email, password);
       setCurrentUser(userData);
+      console.log('Login successful, token:', userData.token);
       return userData;
     } catch (error) {
+      console.error('Login error:', error);
       throw error;
     }
   };
