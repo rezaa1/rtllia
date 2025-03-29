@@ -4,6 +4,8 @@ import { useAuth } from '../utils/AuthContext'; // Import the Auth context
 
 const CreateWidget = () => {
   const { currentUser } = useAuth(); // Get the current user from context
+  console.log('Current User:', currentUser);
+  console.log('Token:', currentUser.token);
   const [name, setName] = useState('');
   const [agentId, setAgentId] = useState('');
   const [themeColor, setThemeColor] = useState('#0088FF');
@@ -14,8 +16,6 @@ const CreateWidget = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      console.log('Current User:', currentUser);
-      console.log('Token:', currentUser.token);
       const response = await axios.post('/api/widgets', {
         name,
         agentId,
@@ -29,8 +29,6 @@ const CreateWidget = () => {
         }
       });
       console.log('Widget created:', response.data);
-      localStorage.setItem('token', response.data.token); // Example of setting the token
-      // Optionally redirect or show success message
     } catch (error) {
       console.error('Error creating widget:', error);
     }
