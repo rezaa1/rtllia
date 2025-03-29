@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../utils/AuthContext'; // Import the Auth context
-import widgetService from '../services/widgetService';
+import widgetService from '../services/api'; // Import widgetService from the correct path
 
 const CreateWidget = () => {
   const { currentUser } = useAuth(); // Get the current user from context
