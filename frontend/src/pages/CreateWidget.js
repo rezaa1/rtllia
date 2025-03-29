@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../utils/AuthContext'; // Import the Auth context
-import widgetService from '../services/api'; // Import widgetService from the correct path
+import { widgetService } from '../services/api'; // Import widgetService as a named export
 import { useNavigate } from 'react-router-dom'; // Import useNavigate from react-router-dom
 
 const CreateWidget = () => {
