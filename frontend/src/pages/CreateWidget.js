@@ -5,7 +5,7 @@ import { useAuth } from '../utils/AuthContext'; // Import the Auth context
 const CreateWidget = () => {
   const { currentUser } = useAuth(); // Get the current user from context
   console.log('Current User:', currentUser);
-  console.log('Token:', currentUser.token);
+  console.log('Token:', currentUser ? currentUser.token : 'No token found'); // Check if token is defined
   const [name, setName] = useState('');
   const [agentId, setAgentId] = useState('');
   const [themeColor, setThemeColor] = useState('#0088FF');
@@ -15,6 +15,10 @@ const CreateWidget = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!currentUser || !currentUser.token) {
+      console.error('No valid token found. Cannot create widget.');
+      return; // Prevent submission if token is not available
+    }
     try {
       const response = await axios.post('/api/widgets', {
         name,
