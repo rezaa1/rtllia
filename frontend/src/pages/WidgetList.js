@@ -11,11 +11,14 @@
          try {
            const orgId = localStorage.getItem('orgId'); // Retrieve the organization ID from local storage
            const token = localStorage.getItem('token'); // Retrieve the token
+           console.log('Organization ID:', orgId); // Debugging log
+           console.log('Token:', token); // Debugging log
            const response = await axios.get(`/api/widgets/organization/${orgId}`, {
              headers: {
                Authorization: `Bearer ${token}` // Include the token in the headers
              }
            });
+           console.log('API Response:', response.data); // Debugging log
            setWidgets(response.data);
          } catch (error) {
            console.error('Error fetching widgets:', error);
