@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../utils/AuthContext'; // Import the Auth context
 import widgetService from '../services/api'; // Import widgetService from the correct path
+import { useNavigate } from 'react-router-dom'; // Import useNavigate from react-router-dom
 
 const CreateWidget = () => {
   const { currentUser } = useAuth(); // Get the current user from context
+  const navigate = useNavigate(); // Initialize navigate
   console.log('Current User:', currentUser);
   console.log('Token:', currentUser ? currentUser.token : 'No token found'); // Check if token is defined
   const [name, setName] = useState('');
@@ -34,8 +36,10 @@ const CreateWidget = () => {
 
       await widgetService.createWidget(submissionData); // Use widgetService to create the widget
       console.log('Widget created successfully'); // Log success message
+      navigate('/dashboard'); // Navigate to dashboard
     } catch (error) {
       setError(error.response?.data?.message || 'Failed to create widget. Please try again.'); // Handle error
+    } finally {
       setLoading(false); // Reset loading state
     }
   };
@@ -50,7 +54,7 @@ const CreateWidget = () => {
         <input type="text" placeholder="Header Text" value={headerText} onChange={(e) => setHeaderText(e.target.value)} />
         <textarea placeholder="Welcome Message" value={welcomeMessage} onChange={(e) => setWelcomeMessage(e.target.value)} />
         <input type="text" placeholder="Allowed Domains (comma separated)" value={allowedDomains} onChange={(e) => setAllowedDomains(e.target.value)} />
-        <button type="submit">Create Widget</button>
+        <button type="submit" disabled={loading}>Create Widget</button>
       </form>
     </div>
   );
