@@ -15,7 +15,8 @@ const CreateWidget = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!currentUser || !currentUser.token) {
+    const token = localStorage.getItem('token'); // Fallback to localStorage
+    if (!token) {
       console.error('No valid token found. Cannot create widget.');
       return; // Prevent submission if token is not available
     }
@@ -29,7 +30,7 @@ const CreateWidget = () => {
         allowedDomains: allowedDomains.split(',').map(domain => domain.trim()), // Convert to array
       }, {
         headers: {
-          Authorization: `Bearer ${currentUser.token}` // Ensure this is defined
+          Authorization: `Bearer ${token}` // Use the token
         }
       });
       console.log('Widget created:', response.data);
