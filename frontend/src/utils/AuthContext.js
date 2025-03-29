@@ -19,19 +19,17 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        // Check if token exists in localStorage
         const token = localStorage.getItem('token');
+        console.log('Fetched token from localStorage:', token);
         if (!token) {
           setLoading(false);
           return;
         }
-        
-        // Get current user data
         const userData = await authService.getCurrentUser();
         setCurrentUser(userData);
+        console.log('Current user data:', userData);
       } catch (error) {
         console.error('Error fetching current user:', error);
-        // Clear token if it's invalid
         if (error.response && error.response.status === 401) {
           localStorage.removeItem('token');
         }
@@ -50,6 +48,7 @@ export const AuthProvider = ({ children }) => {
       const userData = await authService.login(email, password);
       setCurrentUser(userData);
       console.log('Login successful, token:', userData.token);
+      localStorage.setItem('token', userData.token);
       return userData;
     } catch (error) {
       console.error('Login error:', error);
