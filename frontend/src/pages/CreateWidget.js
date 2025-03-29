@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../utils/AuthContext'; // Import the Auth context
+import widgetService from '../services/widgetService';
 
 const CreateWidget = () => {
   const { currentUser } = useAuth(); // Get the current user from context
@@ -12,30 +13,30 @@ const CreateWidget = () => {
   const [headerText, setHeaderText] = useState('Chat with us');
   const [welcomeMessage, setWelcomeMessage] = useState('');
   const [allowedDomains, setAllowedDomains] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token'); // Fallback to localStorage
-    if (!token) {
-      console.error('No valid token found. Cannot create widget.');
-      return; // Prevent submission if token is not available
-    }
+    setError(''); // Initialize error state
     try {
-      const response = await axios.post('/api/widgets', {
+      setLoading(true); // Set loading state
+      // Create a copy of the form data to modify before submission
+      const submissionData = {
         name,
         agentId,
         themeColor,
         headerText,
         welcomeMessage,
         allowedDomains: allowedDomains.split(',').map(domain => domain.trim()), // Convert to array
-      }, {
-        headers: {
-          Authorization: `Bearer ${token}` // Use the token
-        }
-      });
-      console.log('Widget created:', response.data);
+      };
+
+      await widgetService.createWidget(submissionData); // Use widgetService to create the widget
+      console.log('Widget created successfully'); // Log success message
     } catch (error) {
-      console.error('Error creating widget:', error);
+      setError(error.response?.data?.message || 'Failed to create widget. Please try again.'); // Handle error
+      setLoading(false); // Reset loading state
     }
   };
 

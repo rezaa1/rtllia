@@ -237,4 +237,31 @@ export const whiteLabelService = {
   }
 };
 
+// Widget service
+export const widgetService = {
+  createWidget: async (widgetData) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+    
+    const response = await API.post('/widgets', widgetData, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.data;
+  },
+  
+  updateWidget: async (id, widgetData) => {
+    const response = await API.put(`/widgets/${id}`, widgetData);
+    return response.data;
+  },
+  
+  deleteWidget: async (id) => {
+    const response = await API.delete(`/widgets/${id}`);
+    return response.data;
+  }
+};
+
 export default API;
