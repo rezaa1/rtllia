@@ -240,16 +240,8 @@ export const whiteLabelService = {
 // Widget service
 export const widgetService = {
   createWidget: async (widgetData) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-    
-    const response = await API.post('/widgets', widgetData, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    // The token is already handled by the API interceptor, no need to add it manually
+    const response = await API.post('/widgets', widgetData);
     return response.data;
   },
   
