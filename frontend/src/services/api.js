@@ -244,7 +244,10 @@ export const widgetService = {
     const response = await API.post('/widgets', widgetData);
     return response.data;
   },
-  
+  getWidgets: async (org_id) => {
+    const response = await API.get('/widgets/organization/${org_id}');
+    return response.data;
+  },
   updateWidget: async (id, widgetData) => {
     const response = await API.put(`/widgets/${id}`, widgetData);
     return response.data;

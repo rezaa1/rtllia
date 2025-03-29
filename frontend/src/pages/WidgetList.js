@@ -2,17 +2,25 @@
    import React, { useEffect, useState } from 'react';
    import axios from 'axios';
    import { Link } from 'react-router-dom';
+   import { useAuth } from '../utils/AuthContext'; // Import the Auth context
 
    const WidgetList = () => {
+     const { currentUser } = useAuth(); // Get the current user from context
      const [widgets, setWidgets] = useState([]);
 
      useEffect(() => {
        const fetchWidgets = async () => {
          try {
-           const orgId = localStorage.getItem('orgId'); // Retrieve the organization ID from local storage
-           const token = localStorage.getItem('token'); // Retrieve the token
+           if (!currentUser) {
+             console.error('User not authenticated');
+             return;
+           }
+
+           const orgId = currentUser.organizationId; // Get organization ID from authenticated user
+           const token = currentUser.token; // Get token from authenticated user
            console.log('Organization ID:', orgId); // Debugging log
            console.log('Token:', token); // Debugging log
+
            const response = await axios.get(`/api/widgets/organization/${orgId}`, {
              headers: {
                Authorization: `Bearer ${token}` // Include the token in the headers
@@ -26,7 +34,7 @@
        };
 
        fetchWidgets();
-     }, []);
+     }, [currentUser]); // Add currentUser as a dependency
 
      return (
        <div>
